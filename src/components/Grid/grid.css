@@ -1,0 +1,335 @@
+/* ============================================================
+   Grid System — Bootstrap-equivalent
+   ============================================================ */
+
+/* ── Containers ─────────────────────────────────────────── */
+
+.container,
+.container-fluid {
+    width: 100%;
+    margin-right: auto;
+    margin-left: auto;
+    padding-right: 12px;
+    padding-left: 12px;
+    box-sizing: border-box;
+}
+
+/* Fixed-width breakpoints (matches Bootstrap 5) */
+@media (min-width: 576px)  { .container { max-width: 540px;  } }
+@media (min-width: 768px)  { .container { max-width: 720px;  } }
+@media (min-width: 992px)  { .container { max-width: 960px;  } }
+@media (min-width: 1200px) { .container { max-width: 1140px; } }
+@media (min-width: 1400px) { .container { max-width: 1320px; } }
+
+/* container-fluid is always 100% — no max-width override needed */
+
+/* ── Row ────────────────────────────────────────────────── */
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -8px;
+    margin-left: -8px;
+    box-sizing: border-box;
+}
+
+/* Remove row's negative margin when used inside a container */
+.container > .row,
+.container-fluid > .row {
+    margin-right: -8px;
+    margin-left: -8px;
+}
+
+/* ── Columns (base — applies to all breakpoints) ────────── */
+
+[class*="col"] {
+    box-sizing: border-box;
+    padding-right: 8px;
+    padding-left: 8px;
+    width: 100%;
+}
+
+/* Auto/equal-width column */
+.col {
+    flex: 1 0 0%;
+    min-width: 0;
+}
+
+/* col-auto — shrinks to content */
+.col-auto {
+    flex: 0 0 auto;
+    width: auto;
+}
+
+/* 12-column fixed spans */
+.col-1  { flex: 0 0 auto; width: 8.3333%;   }
+.col-2  { flex: 0 0 auto; width: 16.6667%;  }
+.col-3  { flex: 0 0 auto; width: 25%;       }
+.col-4  { flex: 0 0 auto; width: 33.3333%;  }
+.col-5  { flex: 0 0 auto; width: 41.6667%;  }
+.col-6  { flex: 0 0 auto; width: 50%;       }
+.col-7  { flex: 0 0 auto; width: 58.3333%;  }
+.col-8  { flex: 0 0 auto; width: 66.6667%;  }
+.col-9  { flex: 0 0 auto; width: 75%;       }
+.col-10 { flex: 0 0 auto; width: 83.3333%;  }
+.col-11 { flex: 0 0 auto; width: 91.6667%;  }
+.col-12 { flex: 0 0 auto; width: 100%;      }
+
+/* ── Responsive — sm (≥576px) ──────────────────────────── */
+@media (min-width: 576px) {
+    .col-sm    { flex: 1 0 0%; min-width: 0; }
+    .col-sm-auto { flex: 0 0 auto; width: auto; }
+    .col-sm-1  { flex: 0 0 auto; width: 8.3333%;  }
+    .col-sm-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-sm-3  { flex: 0 0 auto; width: 25%;      }
+    .col-sm-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-sm-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-sm-6  { flex: 0 0 auto; width: 50%;      }
+    .col-sm-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-sm-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-sm-9  { flex: 0 0 auto; width: 75%;      }
+    .col-sm-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-sm-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-sm-12 { flex: 0 0 auto; width: 100%;     }
+}
+
+/* ── Responsive — md (≥768px) ──────────────────────────── */
+@media (min-width: 768px) {
+    .col-md    { flex: 1 0 0%; min-width: 0; }
+    .col-md-auto { flex: 0 0 auto; width: auto; }
+    .col-md-1  { flex: 0 0 auto; width: 8.3333%;  }
+    .col-md-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-md-3  { flex: 0 0 auto; width: 25%;      }
+    .col-md-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-md-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-md-6  { flex: 0 0 auto; width: 50%;      }
+    .col-md-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-md-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-md-9  { flex: 0 0 auto; width: 75%;      }
+    .col-md-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-md-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-md-12 { flex: 0 0 auto; width: 100%;     }
+}
+
+/* ── Responsive — lg (≥992px) ──────────────────────────── */
+@media (min-width: 992px) {
+    .col-lg    { flex: 1 0 0%; min-width: 0; }
+    .col-lg-auto { flex: 0 0 auto; width: auto; }
+    .col-lg-1  { flex: 0 0 auto; width: 8.3333%;  }
+    .col-lg-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-lg-3  { flex: 0 0 auto; width: 25%;      }
+    .col-lg-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-lg-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-lg-6  { flex: 0 0 auto; width: 50%;      }
+    .col-lg-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-lg-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-lg-9  { flex: 0 0 auto; width: 75%;      }
+    .col-lg-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-lg-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-lg-12 { flex: 0 0 auto; width: 100%;     }
+}
+
+/* ── Responsive — xl (≥1200px) ─────────────────────────── */
+@media (min-width: 1200px) {
+    .col-xl    { flex: 1 0 0%; min-width: 0; }
+    .col-xl-auto { flex: 0 0 auto; width: auto; }
+    .col-xl-1  { flex: 0 0 auto; width: 8.3333%;  }
+    .col-xl-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-xl-3  { flex: 0 0 auto; width: 25%;      }
+    .col-xl-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-xl-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-xl-6  { flex: 0 0 auto; width: 50%;      }
+    .col-xl-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-xl-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-xl-9  { flex: 0 0 auto; width: 75%;      }
+    .col-xl-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-xl-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-xl-12 { flex: 0 0 auto; width: 100%;     }
+}
+
+/* ── Responsive — xxl (≥1400px) ────────────────────────── */
+@media (min-width: 1400px) {
+    .col-xxl    { flex: 1 0 0%; min-width: 0; }
+    .col-xxl-auto { flex: 0 0 auto; width: auto; }
+    .col-xxl-1  { flex: 0 0 auto; width: 8.3333%;  }
+    .col-xxl-2  { flex: 0 0 auto; width: 16.6667%; }
+    .col-xxl-3  { flex: 0 0 auto; width: 25%;      }
+    .col-xxl-4  { flex: 0 0 auto; width: 33.3333%; }
+    .col-xxl-5  { flex: 0 0 auto; width: 41.6667%; }
+    .col-xxl-6  { flex: 0 0 auto; width: 50%;      }
+    .col-xxl-7  { flex: 0 0 auto; width: 58.3333%; }
+    .col-xxl-8  { flex: 0 0 auto; width: 66.6667%; }
+    .col-xxl-9  { flex: 0 0 auto; width: 75%;      }
+    .col-xxl-10 { flex: 0 0 auto; width: 83.3333%; }
+    .col-xxl-11 { flex: 0 0 auto; width: 91.6667%; }
+    .col-xxl-12 { flex: 0 0 auto; width: 100%;     }
+}
+
+/* ── Gutter utilities (g-0 … g-5) ──────────────────────── */
+
+.g-0  { --gutter: 0px;   }
+.g-1  { --gutter: 4px;   }
+.g-2  { --gutter: 8px;   }
+.g-3  { --gutter: 16px;  }
+.g-4  { --gutter: 24px;  }
+.g-5  { --gutter: 32px;  }
+
+.g-0, .g-1, .g-2, .g-3, .g-4, .g-5 {
+    margin-right: calc(-1 * var(--gutter) / 2);
+    margin-left:  calc(-1 * var(--gutter) / 2);
+}
+
+.g-0 > [class*="col"],
+.g-1 > [class*="col"],
+.g-2 > [class*="col"],
+.g-3 > [class*="col"],
+.g-4 > [class*="col"],
+.g-5 > [class*="col"] {
+    padding-right: calc(var(--gutter) / 2);
+    padding-left:  calc(var(--gutter) / 2);
+}
+
+/* ── Row alignment helpers ──────────────────────────────── */
+
+.align-items-start    { align-items: flex-start; }
+.align-items-center   { align-items: center;     }
+.align-items-end      { align-items: flex-end;   }
+.align-items-stretch  { align-items: stretch;    }
+
+.justify-content-start   { justify-content: flex-start;    }
+.justify-content-center  { justify-content: center;        }
+.justify-content-end     { justify-content: flex-end;      }
+.justify-content-between { justify-content: space-between; }
+.justify-content-around  { justify-content: space-around;  }
+.justify-content-evenly  { justify-content: space-evenly;  }
+
+.flex-nowrap { flex-wrap: nowrap; }
+.flex-wrap   { flex-wrap: wrap;   }
+
+/* ============================================================
+   Spacing Utilities  (matches Bootstrap 5 scale)
+   --space-1 = 4px  (0.25rem)
+   --space-2 = 8px  (0.5rem)
+   --space-3 = 16px (1rem)
+   --space-4 = 24px (1.5rem)
+   --space-5 = 48px (3rem)
+   ============================================================ */
+
+/* ── Padding — all sides ─────────────────────────────────── */
+.p-0  { padding:        0 !important; }
+.p-1  { padding:   4px !important; }
+.p-2  { padding:   8px !important; }
+.p-3  { padding:  16px !important; }
+.p-4  { padding:  24px !important; }
+.p-5  { padding:  48px !important; }
+
+/* ── Padding Top ─────────────────────────────────────────── */
+.pt-0 { padding-top:    0 !important; }
+.pt-1 { padding-top:  4px !important; }
+.pt-2 { padding-top:  8px !important; }
+.pt-3 { padding-top: 16px !important; }
+.pt-4 { padding-top: 24px !important; }
+.pt-5 { padding-top: 48px !important; }
+
+/* ── Padding Bottom ──────────────────────────────────────── */
+.pb-0 { padding-bottom:    0 !important; }
+.pb-1 { padding-bottom:  4px !important; }
+.pb-2 { padding-bottom:  8px !important; }
+.pb-3 { padding-bottom: 16px !important; }
+.pb-4 { padding-bottom: 24px !important; }
+.pb-5 { padding-bottom: 48px !important; }
+
+/* ── Padding Start (left) ────────────────────────────────── */
+.ps-0 { padding-left:    0 !important; }
+.ps-1 { padding-left:  4px !important; }
+.ps-2 { padding-left:  8px !important; }
+.ps-3 { padding-left: 16px !important; }
+.ps-4 { padding-left: 24px !important; }
+.ps-5 { padding-left: 48px !important; }
+
+/* ── Padding End (right) ─────────────────────────────────── */
+.pe-0 { padding-right:    0 !important; }
+.pe-1 { padding-right:  4px !important; }
+.pe-2 { padding-right:  8px !important; }
+.pe-3 { padding-right: 16px !important; }
+.pe-4 { padding-right: 24px !important; }
+.pe-5 { padding-right: 48px !important; }
+
+/* ── Padding X (left + right) ────────────────────────────── */
+.px-0 { padding-left:    0 !important; padding-right:    0 !important; }
+.px-1 { padding-left:  4px !important; padding-right:  4px !important; }
+.px-2 { padding-left:  8px !important; padding-right:  8px !important; }
+.px-3 { padding-left: 16px !important; padding-right: 16px !important; }
+.px-4 { padding-left: 24px !important; padding-right: 24px !important; }
+.px-5 { padding-left: 48px !important; padding-right: 48px !important; }
+
+/* ── Padding Y (top + bottom) ────────────────────────────── */
+.py-0 { padding-top:    0 !important; padding-bottom:    0 !important; }
+.py-1 { padding-top:  4px !important; padding-bottom:  4px !important; }
+.py-2 { padding-top:  8px !important; padding-bottom:  8px !important; }
+.py-3 { padding-top: 16px !important; padding-bottom: 16px !important; }
+.py-4 { padding-top: 24px !important; padding-bottom: 24px !important; }
+.py-5 { padding-top: 48px !important; padding-bottom: 48px !important; }
+
+/* ── Margin — all sides ──────────────────────────────────── */
+.m-0    { margin:        0 !important; }
+.m-1    { margin:   4px !important; }
+.m-2    { margin:   8px !important; }
+.m-3    { margin:  16px !important; }
+.m-4    { margin:  24px !important; }
+.m-5    { margin:  48px !important; }
+.m-auto { margin: auto  !important; }
+
+/* ── Margin Top ──────────────────────────────────────────── */
+.mt-0    { margin-top:    0 !important; }
+.mt-1    { margin-top:  4px !important; }
+.mt-2    { margin-top:  8px !important; }
+.mt-3    { margin-top: 16px !important; }
+.mt-4    { margin-top: 24px !important; }
+.mt-5    { margin-top: 48px !important; }
+.mt-auto { margin-top: auto !important; }
+
+/* ── Margin Bottom ───────────────────────────────────────── */
+.mb-0    { margin-bottom:    0 !important; }
+.mb-1    { margin-bottom:  4px !important; }
+.mb-2    { margin-bottom:  8px !important; }
+.mb-3    { margin-bottom: 16px !important; }
+.mb-4    { margin-bottom: 24px !important; }
+.mb-5    { margin-bottom: 48px !important; }
+.mb-auto { margin-bottom: auto !important; }
+
+/* ── Margin Start (left) ─────────────────────────────────── */
+.ms-0    { margin-left:    0 !important; }
+.ms-1    { margin-left:  4px !important; }
+.ms-2    { margin-left:  8px !important; }
+.ms-3    { margin-left: 16px !important; }
+.ms-4    { margin-left: 24px !important; }
+.ms-5    { margin-left: 48px !important; }
+.ms-auto { margin-left: auto !important; }
+
+/* ── Margin End (right) ──────────────────────────────────── */
+.me-0    { margin-right:    0 !important; }
+.me-1    { margin-right:  4px !important; }
+.me-2    { margin-right:  8px !important; }
+.me-3    { margin-right: 16px !important; }
+.me-4    { margin-right: 24px !important; }
+.me-5    { margin-right: 48px !important; }
+.me-auto { margin-right: auto !important; }
+
+/* ── Margin X (left + right) ─────────────────────────────── */
+.mx-0    { margin-left:    0 !important; margin-right:    0 !important; }
+.mx-1    { margin-left:  4px !important; margin-right:  4px !important; }
+.mx-2    { margin-left:  8px !important; margin-right:  8px !important; }
+.mx-3    { margin-left: 16px !important; margin-right: 16px !important; }
+.mx-4    { margin-left: 24px !important; margin-right: 24px !important; }
+.mx-5    { margin-left: 48px !important; margin-right: 48px !important; }
+.mx-auto { margin-left: auto !important; margin-right: auto !important; }
+
+/* ── Margin Y (top + bottom) ─────────────────────────────── */
+.my-0    { margin-top:    0 !important; margin-bottom:    0 !important; }
+.my-1    { margin-top:  4px !important; margin-bottom:  4px !important; }
+.my-2    { margin-top:  8px !important; margin-bottom:  8px !important; }
+.my-3    { margin-top: 16px !important; margin-bottom: 16px !important; }
+.my-4    { margin-top: 24px !important; margin-bottom: 24px !important; }
+.my-5    { margin-top: 48px !important; margin-bottom: 48px !important; }
+.my-auto { margin-top: auto !important; margin-bottom: auto !important; }

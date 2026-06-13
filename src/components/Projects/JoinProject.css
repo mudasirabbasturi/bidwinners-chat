@@ -1,0 +1,365 @@
+/* components/Projects/JoinProject.css */
+.join-project-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: jpOverlayIn 0.2s ease;
+    padding: 16px;
+}
+
+@keyframes jpOverlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.join-project-modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 480px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: jpModalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes jpModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Header */
+.join-project-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.join-project-header-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    flex-shrink: 0;
+}
+
+.join-project-header-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.join-project-header-text h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.join-project-header-text p {
+    margin: 2px 0 0;
+    font-size: 13px;
+    color: #94a3b8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.join-project-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.join-project-close:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+/* Body */
+.join-project-body {
+    padding: 20px 24px;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 50vh;
+}
+
+.join-project-section-title {
+    margin: 0 0 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #475569;
+    text-align: center;
+}
+
+.join-project-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.join-project-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.join-project-step:hover {
+    border-color: #cbd5e1;
+    background: #f1f5f9;
+}
+
+.join-project-step.selected {
+    border-color: #6366f1;
+    background: rgba(99, 102, 241, 0.04);
+}
+
+.join-project-step.custom {
+    border-style: dashed;
+}
+
+.join-project-step-checkbox {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.join-project-step-checkbox input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.join-project-step-checkmark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #cbd5e1;
+    background: white;
+    transition: all 0.2s;
+    color: white;
+}
+
+.join-project-step.selected .join-project-step-checkmark {
+    border-color: #6366f1;
+    background: #6366f1;
+}
+
+.join-project-step-label {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+}
+
+.join-project-step.selected .join-project-step-label {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.join-project-step-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: #ede9fe;
+    color: #7c3aed;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.join-project-empty {
+    text-align: center;
+    padding: 20px;
+    color: #94a3b8;
+    font-size: 13px;
+}
+
+/* Add Step Input */
+.join-project-add-step {
+    margin-top: 16px;
+}
+
+.join-project-add-step-input-wrapper {
+    display: flex;
+    gap: 8px;
+}
+
+.join-project-add-step-input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 13px;
+    color: #1e293b;
+    background: #f8fafc;
+    outline: none;
+    transition: all 0.2s;
+}
+
+.join-project-add-step-input:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.join-project-add-step-input::placeholder {
+    color: #94a3b8;
+}
+
+.join-project-add-step-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 10px 16px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.join-project-add-step-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.join-project-add-step-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Footer */
+.join-project-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.join-project-footer-info {
+    font-size: 13px;
+    color: #64748b;
+}
+
+.join-project-step-count {
+    font-weight: 600;
+    color: #6366f1;
+}
+
+.join-project-footer-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.join-project-btn-cancel {
+    padding: 10px 20px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.join-project-btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.join-project-btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.join-project-btn-submit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.join-project-btn-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Spinner */
+.join-project-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: jpSpin 0.6s linear infinite;
+}
+
+@keyframes jpSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}

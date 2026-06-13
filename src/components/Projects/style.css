@@ -1,0 +1,263 @@
+/* === Shared Project Modal Styles (Add / Edit / View) === */
+
+.project-modal-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.project-modal-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    border-radius: 12px;
+    flex-shrink: 0;
+}
+
+.project-modal-title h2 {
+    margin: 0 0 2px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.project-modal-title p {
+    margin: 0;
+    font-size: 12px;
+    color: #94a3b8;
+}
+
+/* Scroll */
+.project-scroll {
+    height: 100%;
+    max-height: 60vh;
+}
+
+.project-scroll .simplebar-scrollbar::before {
+    width: 5px;
+    border-radius: 6px;
+    background: #94a3b8;
+    opacity: 0.25;
+}
+
+.project-scroll .simplebar-scrollbar.simplebar-visible::before {
+    opacity: 0.5;
+}
+
+/* Form Layout */
+.project-form {
+    padding-right: 8px;
+}
+
+
+
+/* Section Label */
+.project-section-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.1px;
+    color: #6366f1;
+    background: linear-gradient(90deg, #eef2ff, #f5f3ff);
+    border-radius: 20px;
+    padding: 4px 10px 4px 8px;
+    margin-bottom: 4px;
+    width: fit-content;
+    position: relative;
+}
+
+.project-section-label::before {
+    content: '';
+    display: block;
+    width: 3px;
+    height: 12px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #4f46e5, #7c3aed);
+    flex-shrink: 0;
+}
+
+/* Field */
+.project-field {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: -4px;
+}
+
+.project-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 6px;
+}
+
+/* React Quill */
+.project-field .ql-toolbar {
+    padding: 4px 6px;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    border-radius: 10px 10px 0 0;
+}
+
+.project-field .ql-toolbar button {
+    width: 24px;
+    height: 24px;
+    padding: 2px;
+}
+
+.project-field .ql-container {
+    border-color: #e2e8f0;
+    border-radius: 0 0 10px 10px;
+    font-size: 14px;
+    font-family: inherit;
+}
+
+.project-field .ql-editor {
+    min-height: 100px;
+    max-height: 180px;
+    overflow-y: auto;
+    padding: 12px 14px;
+}
+
+.project-field .ql-editor.ql-blank::before {
+    color: #94a3b8;
+    font-size: 14px;
+    font-style: normal;
+    left: 14px;
+}
+
+/* Budget Calculator Card */
+.budget-calculator {
+    background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(79, 70, 229, 0.25), inset 0 1px 0 rgba(255,255,255,0.06);
+    position: relative;
+    overflow: hidden;
+}
+
+.budget-calculator::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    right: -30px;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(124, 58, 237, 0.4) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.budget-slot {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.budget-slot-label {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: rgba(255, 255, 255, 0.45);
+}
+
+.budget-slot-value {
+    font-size: 15px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.3px;
+}
+
+.budget-slot.is-deduction .budget-slot-value {
+    color: #f87171;
+}
+
+.budget-divider {
+    width: 1px;
+    height: 32px;
+    background: rgba(255,255,255,0.1);
+    flex-shrink: 0;
+}
+
+.budget-slot.is-total {
+    flex: 1.2;
+}
+
+.budget-slot.is-total .budget-slot-label {
+    color: rgba(167, 243, 208, 0.7);
+}
+
+.budget-slot.is-total .budget-slot-value {
+    font-size: 20px;
+    background: linear-gradient(90deg, #34d399, #6ee7b7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 8px rgba(52, 211, 153, 0.4));
+}
+
+/* Footer */
+.project-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.project-btn-cancel {
+    padding: 8px 20px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    color: #64748b;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.project-btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+}
+
+.project-btn-submit {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, .25);
+}
+
+.project-btn-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(79, 70, 229, .35);
+}
+
+.project-btn-submit:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+    .project-row {
+        flex-direction: column;
+    }
+
+    .project-row-inner {
+        flex-direction: column;
+    }
+}

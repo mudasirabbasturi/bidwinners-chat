@@ -1,0 +1,264 @@
+/* components/Projects/ColumnEdit.css */
+.column-edit-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    animation: columnOverlayIn 0.2s ease;
+    padding: 16px;
+}
+
+@keyframes columnOverlayIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.column-edit-modal {
+    background: white;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+    animation: columnModalIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes columnModalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.column-edit-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.column-edit-title h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.column-edit-title p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.column-edit-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: #f1f5f9;
+    color: #64748b;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.column-edit-close:hover {
+    background: #e2e8f0;
+    color: #334155;
+}
+
+.column-edit-body {
+    padding: 20px 24px;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 100px;
+}
+
+.column-edit-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.column-edit-richtext {
+    min-height: 200px;
+}
+
+.column-edit-richtext .quill {
+    height: 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-edit-richtext .ql-container {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 0 0 8px 8px;
+}
+
+.column-edit-richtext .ql-toolbar {
+    border-radius: 8px 8px 0 0;
+}
+
+.column-edit-field input,
+.column-edit-field textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 14px;
+    color: #1e293b;
+    background: #f8fafc;
+    transition: all 0.2s;
+    outline: none;
+    font-family: inherit;
+}
+
+.column-edit-field input:focus,
+.column-edit-field textarea:focus {
+    border-color: #6366f1;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.08);
+}
+
+.column-edit-loading {
+    padding: 20px 0;
+}
+
+.column-edit-skeleton {
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
+    background-size: 200% 100%;
+    animation: columnSkeleton 1.4s infinite;
+}
+
+@keyframes columnSkeleton {
+    0% {
+        background-position: 200% 0;
+    }
+
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+.column-edit-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.column-edit-btn-cancel {
+    padding: 10px 20px;
+    border: 1.5px solid #e2e8f0;
+    background: white;
+    color: #64748b;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.column-edit-btn-cancel:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+.column-edit-btn-save {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: white;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.column-edit-btn-save:hover:not(:disabled) {
+    background: linear-gradient(135deg, #4f46e5, #4338ca);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.column-edit-btn-save:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Add these styles to components/Projects/ColumnEdit.css */
+
+/* Client notes section */
+.column-edit-client-notes {
+    margin-top: 16px;
+}
+
+.column-edit-client-notes .quill {
+    height: 150px;
+    display: flex;
+    flex-direction: column;
+}
+
+.column-edit-client-notes .ql-container {
+    flex: 1;
+    overflow-y: auto;
+    border-radius: 0 0 8px 8px;
+    background: #f8fafc;
+}
+
+.column-edit-client-notes .ql-toolbar {
+    border-radius: 8px 8px 0 0;
+    background: #f1f5f9;
+}
+
+.column-edit-client-notes .ql-editor {
+    font-size: 13px;
+    color: #64748b;
+    cursor: default;
+}
+
+/* Wider modal for client edit with notes */
+.column-edit-modal-wide {
+    max-width: 620px;
+}
+
+/* Make body scrollable when content is tall */
+.column-edit-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}

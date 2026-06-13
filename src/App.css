@@ -1,0 +1,266 @@
+:root {
+  --font-family: "Adobe Clean Regular", sans-serif;
+
+  /* Modern Professional Palette: Slate & Indigo */
+  --bg-color: #ffffff;
+  --bg-dim: #f8fafc;
+  --bg-sidebar: #ffffff;
+  --text-primary: #0f172a;
+  /* Slate 900 */
+  --text-secondary: #475569;
+  /* Slate 600 */
+  --text-muted: #94a3b8;
+  /* Slate 400 */
+
+  --border-color: #e2e8f0;
+  /* Slate 200 */
+  --sidebar-active: #e2e8f0;
+  --primary-color: #4f46e5;
+  /* Indigo 600 */
+  --primary-light: rgba(79, 70, 229, 0.1);
+  --primary-glow: rgba(79, 70, 229, 0.15);
+
+
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/**
+font-family: "Adobe Clean Light", sans-serif
+font-family: "Adobe Clean Light Italic", sans-serif
+font-family: "Adobe Clean Regular", sans-serif
+font-family: "Adobe Clean Italic", sans-serif
+font-family: "Adobe Clean Bold", sans-serif
+font-family: "Adobe Clean Bold Italic", sans-serif
+font-family: "Adobe Clean Semi Condensed", sans-serif
+font-family: "Adobe Clean Semi Condensed Italic", sans-serif
+font-family: "Adobe Clean Bold Semi Condensed", sans-serif
+font-family: "Adobe Clean Bold Semi Condensed Italic", sans-serif
+**/
+@font-face {
+  font-family: "Adobe Clean Light";
+  src: url("/fonts/adobe/AdobeClean-Light.ttf");
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Adobe Clean Light Italic";
+  src: url("/fonts/adobe/AdobeClean-LightIt.ttf");
+  font-weight: 300;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Adobe Clean Regular";
+  src: url("/fonts/adobe/AdobeClean-Regular.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Adobe Clean Italic";
+  src: url("/fonts/adobe/AdobeClean-It.ttf");
+  font-weight: normal;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Adobe Clean Bold";
+  src: url("/fonts/adobe/AdobeClean-Bold.ttf");
+  font-weight: bold;
+  font-style: normal;
+}
+
+/* @font-face {
+  font-family: "Adobe Clean Bold Italic";
+  src: url("/fonts/adobe/AdobeClean-BoldItalic.ttf");
+  font-weight: bold;
+  font-style: italic;
+} */
+
+@font-face {
+  font-family: "Adobe Clean Semi Condensed";
+  src: url("/fonts/adobe/AdobeClean-SemiCn.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* @font-face {
+  font-family: "Adobe Clean Semi Condensed Italic";
+  src: url("/fonts/adobe/AdobeClean-SemiCnIt.ttf");
+  font-weight: normal;
+  font-style: italic;
+} */
+
+@font-face {
+  font-family: "Adobe Clean Bold Semi Condensed";
+  src: url("/fonts/adobe/AdobeClean-BoldSemiCn.ttf");
+  font-weight: bold;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Adobe Clean Bold Semi Condensed Italic";
+  src: url("/fonts/adobe/AdobeClean-BoldSemiCnIt.ttf");
+  font-weight: bold;
+  font-style: italic;
+}
+
+body * {
+  font-family: var(--font-family) !important;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styling for simplebar if needed globally, though we use the component */
+/* Hide native scrollbar where simplebar is used */
+[data-simplebar] {
+  height: 100%;
+}
+
+
+/* App Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-dim);
+}
+
+.empty-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-main-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-main-content h2 {
+  font-family: "Adobe Clean Bold", sans-serif;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-main-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    height: 100vh;
+  }
+}
+
+/* App Layout */
+.app-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg-color);
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--bg-dim);
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.main-content.expanded {
+  margin-left: 0;
+}
+
+.main-header {
+  padding: 16px 24px;
+  background: white;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+}
+
+.main-header h2 {
+  font-family: "Adobe Clean Bold", sans-serif;
+  font-size: 20px;
+  color: var(--text-primary);
+}
+
+.empty-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-main-content {
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-main-content h2 {
+  font-family: "Adobe Clean Bold", sans-serif;
+  font-size: 24px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.empty-main-content p {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  .main-content {
+    height: 100vh;
+    margin-left: 0 !important;
+  }
+
+  .main-content.expanded {
+    margin-left: 0 !important;
+  }
+}
+
+input[type="date"] {
+  font-family: var(--font-family) !important;
+  font-size: 16px !important;
+  color: var(--text-primary) !important;
+  padding: 8px;
+}
