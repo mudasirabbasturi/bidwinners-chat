@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
@@ -266,7 +267,7 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
                 </div>
                 <div className="project-actions">
                     <a
-                        href={`#chat/${project.id}`}
+                        href={`/project-chat/${project.id}`}
                         className="chat-btn"
                         title="Open Chat"
                         onClick={(e) => onChatClick(e, project)}
@@ -386,11 +387,48 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
 
 ProjectCard.displayName = 'ProjectCard';
 
-const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
+const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
+    const navigate = useNavigate();
+    const location = useLocation();
+
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
-    const [activeLink, setActiveLink] = useState('project');
     const [statusFilter, setStatusFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
+
+    const activeLink = location.pathname.startsWith('/direct-chat') ? 'direct' : 'project';
+
+    const projectMatch = location.pathname.match(/^\/project-chat\/(\d+)$/);
+    const activeProjectId = projectMatch ? parseInt(projectMatch[1], 10) : null;
+
+    const directMatch = location.pathname.match(/^\/direct-chat\/(\d+)$/);
+    const partnerId = directMatch ? parseInt(directMatch[1], 10) : null;
+
+    // permission states
+    const [permissions, setPermissions] = useState([]);
+    const [permissionsLoading, setPermissionsLoading] = useState(true);
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            fetch(`${API_BASE_URL}/api/user-permissions`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.permissions) {
+                        setPermissions(data.permissions);
+                    }
+                })
+                .catch(err => console.error('Error fetching permissions:', err))
+                .finally(() => setPermissionsLoading(false));
+        }
+    }, []);
+
+    const hasPermission = (permissionName) => {
+        return permissions.some(p => p.name === permissionName);
+    };
 
     // API states
     const [allProjects, setAllProjects] = useState([]);
@@ -551,13 +589,20 @@ const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
         fetchProjects();
     }, [fetchProjects]);
 
+    // Fetch direct users when direct tab is active
+    useEffect(() => {
+        if (activeLink === 'direct') {
+            fetchDirectUsers();
+        }
+    }, [activeLink]);
+
     const handleSearchChange = (e) => {
         setSearchTerm(e.target.value);
     };
 
     const navLinks = [
-        { id: 'project', label: 'Projects Chat', href: '#project' },
-        { id: 'direct', label: 'Direct Chat', href: '#direct' }
+        { id: 'project', label: 'Projects Chat', href: '/project-chat' },
+        { id: 'direct', label: 'Direct Chat', href: '/direct-chat' }
     ];
 
     const statusOptions = [
@@ -572,19 +617,58 @@ const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
         { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
     ];
 
-    const directChatList = [
-        { id: 1, name: 'Alex Johnson', status: 'online', lastMessage: 'Hey, how are you?' },
-        { id: 2, name: 'Sarah Williams', status: 'offline', lastMessage: 'See you tomorrow!' },
-        { id: 3, name: 'Mike Brown', status: 'online', lastMessage: 'The project is ready' },
-    ];
+    // Direct chat users from API
+    const [directUsers, setDirectUsers] = useState([]);
+    const [directUsersLoading, setDirectUsersLoading] = useState(false);
+
+    const fetchDirectUsers = useCallback(async () => {
+        setDirectUsersLoading(true);
+        try {
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_BASE_URL}/api/chat-user-list`, {
+                headers: {
+                    'Accept': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+            const data = await res.json();
+            if (data.users) setDirectUsers(data.users);
+        } catch (err) {
+            console.error('Error fetching direct users:', err);
+        } finally {
+            setDirectUsersLoading(false);
+        }
+    }, []);
 
     const handleNavClick = (id) => {
-        setActiveLink(id);
+        if (id === 'direct') {
+            navigate('/direct-chat');
+        } else {
+            navigate('/project-chat');
+        }
+    };
+
+    const handleDirectUserClick = (user) => {
+        navigate(`/direct-chat/${user.id}`);
+    };
+
+    const getInitials = (name) => {
+        if (!name) return '?';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+    };
+
+    // Deterministic pastel color from name
+    const getUserColor = (name) => {
+        const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'];
+        if (!name) return colors[0];
+        const idx = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
+        return colors[idx];
     };
 
     const handleChatClick = (e, project) => {
+        e.preventDefault();
         e.stopPropagation();
-        window.location.hash = `#chat/${project.id}`;
+        navigate(`/project-chat/${project.id}`);
     };
 
     const handleViewProject = (project) => {
@@ -649,9 +733,15 @@ const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
                                 searchable={true}
                                 className="status-dropdown"
                             />
-                            <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
+                            {/* <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
                                 <MdAdd size={20} />
-                            </button>
+                            </button> */}
+                            {hasPermission('Create Project') && (
+                                <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
+                                    <MdAdd size={20} />
+                                </button>
+                            )}
+
                         </div>
                         {error && (
                             <div className="error-state">
@@ -745,22 +835,53 @@ const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
                     <div className="content-list">
                         <div className="content-list-header">
                             <h3>Direct Messages</h3>
-                            <button className="add-btn" title="New Message">
-                                <MdAdd size={20} />
-                            </button>
                         </div>
-                        {directChatList.map(user => (
-                            <div key={user.id} className="content-item">
-                                <div className="content-item-avatar">
-                                    <span>{user.name.charAt(0)}</span>
-                                    <span className={`status-dot ${user.status}`}></span>
-                                </div>
-                                <div className="content-item-info">
-                                    <span className="content-item-name">{user.name}</span>
-                                    <span className="content-item-meta">{user.lastMessage}</span>
-                                </div>
+                        {directUsersLoading ? (
+                            <div className="loading-state">
+                                {[1, 2, 3, 4].map(i => (
+                                    <div key={i} className="skeleton-card" style={{ height: 60 }}>
+                                        <div className="skeleton-header">
+                                            <div className="skeleton-icon"></div>
+                                            <div className="skeleton-lines">
+                                                <div className="skeleton-line w-75"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        ) : directUsers.length === 0 ? (
+                            <div className="no-projects" style={{ padding: '40px 20px' }}>
+                                <MdPersonAdd size={36} />
+                                <p>No users found</p>
+                            </div>
+                        ) : (
+                            directUsers
+                                .filter(u =>
+                                    !searchTerm ||
+                                    u.name.toLowerCase().includes(searchTerm.toLowerCase())
+                                )
+                                .map(user => (
+                                    <div
+                                        key={user.id}
+                                        className={`content-item dc-user-row ${Number(user.id) === Number(partnerId) ? 'active' : ''}`}
+                                        onClick={() => handleDirectUserClick(user)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        <div
+                                            className="content-item-avatar"
+                                            style={{ background: getUserColor(user.name) }}
+                                        >
+                                            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>
+                                                {getInitials(user.name)}
+                                            </span>
+                                        </div>
+                                        <div className="content-item-info">
+                                            <span className="content-item-name">{user.name}</span>
+                                            <span className="content-item-meta">Click to chat</span>
+                                        </div>
+                                    </div>
+                                ))
+                        )}
                     </div>
                 );
             default:
@@ -854,6 +975,7 @@ const Sidebar = ({ isOpen, onToggle, activeProjectId, onProjectsLoaded }) => {
                 open={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 projectId={selectedProject?.id}
+                permissions={permissions}
             />
             {/* Edit Project Modal */}
             <EditProject

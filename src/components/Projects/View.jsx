@@ -76,7 +76,7 @@ function RichContent({ html, placeholder }) {
 }
 
 /* ── Main ViewProject component ──────────────────────────────── */
-function ViewProject({ open, onClose, projectId }) {
+function ViewProject({ open, onClose, projectId, permissions }) {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -109,6 +109,10 @@ function ViewProject({ open, onClose, projectId }) {
     const members = data?.team_members
         ? Array.from(new Map(data.team_members.map(m => [m.user_id, m])).values())
         : [];
+
+    const hasPermission = (name) => {
+        return permissions?.some(p => p.name === name);
+    };
 
     return (
         <Modal
@@ -181,14 +185,10 @@ function ViewProject({ open, onClose, projectId }) {
 
                                 <SectionLabel>Project Info</SectionLabel>
                                 <div className="vp-card">
-                                    <InfoRow icon={MdPerson} label="Client" value={data.client_name_for_admin} />
+                                    {hasPermission('View Client Personal') && <InfoRow icon={MdPerson} label="Client" value={data.client_name_for_admin} />}
                                     <InfoRow icon={MdConstruction} label="Construction Type" value={data.project_construction_type} />
                                     <InfoRow icon={MdStairs} label="Floor" value={data.project_floor_number} />
                                     <InfoRow icon={MdStar} label="Template" value={data.project_template} />
-                                    {!data.client_name_for_admin && !data.project_address && !data.project_construction_type && (
-                                        <p className="vp-empty">No info provided</p>
-                                    )}
-
                                 </div>
 
                                 <SectionLabel>Metrics &amp; Config</SectionLabel>

@@ -70,7 +70,6 @@ function ProjectChat({ projectId, project }) {
 
         return () => {
             channel.unsubscribe('chat-event', handleNewMessage);
-            ablyClient.channels.release(channelName);
         };
     }, [projectId, currentUser.id]);
 
@@ -78,6 +77,8 @@ function ProjectChat({ projectId, project }) {
     useEffect(() => {
         if (!projectId) return;
 
+        let active = true;
+        setMessages([]); // Clear previous project messages immediately
         const fetchMessages = async () => {
             setLoading(true);
             try {
@@ -89,14 +90,14 @@ function ProjectChat({ projectId, project }) {
                     }
                 });
                 const data = await response.json();
-                if (data.chat_messages) {
+                if (active && data.chat_messages) {
                     setMessages(data.chat_messages);
                     scrollToBottom();
                 }
             } catch (error) {
                 console.error('Error fetching chat messages:', error);
             } finally {
-                setLoading(false);
+                if (active) setLoading(false);
             }
         };
 
@@ -104,6 +105,10 @@ function ProjectChat({ projectId, project }) {
         setReplyTo(null);
         setSelectedFile(null);
         setInputText('');
+
+        return () => {
+            active = false;
+        };
     }, [projectId]);
 
     const scrollToBottom = () => {
@@ -272,8 +277,13 @@ function ProjectChat({ projectId, project }) {
 
     const getFileUrl = (file) => {
         if (!file) return '';
-        // If url already starts with http or /, use it directly
-        if (file.url && (file.url.startsWith('http') || file.url.startsWith('/'))) return file.url;
+        // If url starts with blob:, use directly (local preview)
+        if (file.url && file.url.startsWith('blob:')) return file.url;
+        // If full URL already given, use it
+        if (file.url && file.url.startsWith('http')) return file.url;
+        // If URL starts with /, add API_BASE_URL
+        if (file.url && file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
+        // Fallback: construct from path
         const path = file.url || `uploads/media/project_chat/${file.name}`;
         return `${API_BASE_URL}/${path}`;
     };
@@ -359,7 +369,7 @@ function ProjectChat({ projectId, project }) {
                                 const userAvatar = msg.user_avatar || msg.user?.media?.file_path;
 
                                 return (
-                                    <div key={msg.id}>
+                                    <div key={msg.id} id={`chat-msg-${msg.id}`}>
                                         {showSeparator && (
                                             <div className="chat-date-separator">
                                                 {formatDateSeparator(msg.timestamp || msg.created_at)}
@@ -400,7 +410,7 @@ function ProjectChat({ projectId, project }) {
                                                     )}
 
                                                     <div className="chat-message-bubble">
-                                                        {msg.reply_to_message && (
+                                                        {msg.reply_to_id && (
                                                             <div
                                                                 className="chat-bubble-reply-preview"
                                                                 onClick={() => {
@@ -413,10 +423,11 @@ function ProjectChat({ projectId, project }) {
                                                                 }}
                                                             >
                                                                 <div className="chat-bubble-reply-name">{msg.reply_to_user_name || 'User'}</div>
-                                                                <div className="chat-bubble-reply-text">{msg.reply_to_message}</div>
+                                                                <div className="chat-bubble-reply-text">
+                                                                    {msg.reply_to_message || '📎 File attachment'}
+                                                                </div>
                                                             </div>
                                                         )}
-
                                                         {msg.file && (
                                                             <div className="chat-bubble-files">
                                                                 {renderFileBubble(msg.file, isSelf)}

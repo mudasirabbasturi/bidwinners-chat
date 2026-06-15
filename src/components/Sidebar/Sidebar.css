@@ -1,4 +1,6 @@
-/* Sidebar Styles */
+/* ==========================================================================
+   SIDEBAR - Main Layout
+   ========================================================================== */
 .sidebar {
     width: 340px;
     height: 100vh;
@@ -16,7 +18,9 @@
     transform: translateX(0);
 }
 
-/* Mobile Toggle Button */
+/* ==========================================================================
+   MOBILE - Toggle Button & Overlay
+   ========================================================================== */
 .sidebar-toggle-btn {
     position: fixed;
     top: 16px;
@@ -56,7 +60,9 @@
     animation: fadeIn 0.2s ease;
 }
 
-/* Header Section */
+/* ==========================================================================
+   HEADER - Brand, User, Navigation
+   ========================================================================== */
 .sidebar-header {
     padding: 24px 20px 16px;
     border-bottom: 1px solid var(--border-color);
@@ -71,14 +77,6 @@
     margin-bottom: 20px;
 }
 
-.sidebar-title {
-    font-family: "Adobe Clean Bold", sans-serif;
-    font-weight: 700;
-    font-size: 24px;
-    color: var(--text-primary);
-    letter-spacing: -0.5px;
-}
-
 .sidebar-brand {
     display: flex;
     align-items: center;
@@ -89,6 +87,15 @@
     height: auto;
 }
 
+.sidebar-title {
+    font-family: "Adobe Clean Bold", sans-serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: var(--text-primary);
+    letter-spacing: -0.5px;
+}
+
+/* User Section */
 .sidebar-user {
     display: flex;
     align-items: center;
@@ -137,7 +144,9 @@
     border-color: #dc2626;
 }
 
-/* Tab Navigation */
+/* ==========================================================================
+   NAVIGATION TABS
+   ========================================================================== */
 .nav-tabs {
     display: flex;
     margin-bottom: 16px;
@@ -173,10 +182,6 @@
     font-weight: 600;
 }
 
-.nav-tab-label {
-    position: relative;
-}
-
 .nav-tab-indicator {
     position: absolute;
     top: 3px;
@@ -189,7 +194,9 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
 }
 
-/* Search Bar */
+/* ==========================================================================
+   SEARCH BAR
+   ========================================================================== */
 .search-wrapper {
     position: relative;
     display: flex;
@@ -233,12 +240,13 @@
     font-size: 13px;
 }
 
-/* Content Area */
+/* ==========================================================================
+   CONTENT AREA
+   ========================================================================== */
 .sidebar-content {
     padding: 8px 12px;
 }
 
-/* Content List */
 .content-list {
     display: flex;
     flex-direction: column;
@@ -285,7 +293,9 @@
     color: var(--primary-color);
 }
 
-/* Project Card */
+/* ==========================================================================
+   PROJECT CARD
+   ========================================================================== */
 .project-card {
     background: white;
     border: 1px solid var(--border-color);
@@ -294,12 +304,49 @@
     transition: all 0.2s ease;
 }
 
+
 .project-card:hover {
     border-color: var(--primary-color);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
     transform: translateY(-1px);
 }
 
+/* Project Card - Active State */
+.project-card.active {
+    border-color: var(--primary-color);
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.04), rgba(139, 92, 246, 0.04));
+    box-shadow: 0 0 0 1px var(--primary-color), 0 4px 12px rgba(79, 70, 229, 0.1);
+    transform: translateY(-1px);
+    z-index: 1;
+}
+
+.project-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 70%;
+    background: var(--primary-color);
+    border-radius: 0 3px 3px 0;
+}
+
+.project-card.active:hover {
+    box-shadow: 0 0 0 1px var(--primary-color), 0 6px 16px rgba(79, 70, 229, 0.15);
+}
+
+.project-card.active .project-icon-wrapper {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.15), rgba(139, 92, 246, 0.15));
+    box-shadow: 0 2px 6px rgba(79, 70, 229, 0.15);
+}
+
+.project-card.active .project-title {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+/* Project Card Header */
 .project-card-header {
     display: flex;
     align-items: flex-start;
@@ -350,6 +397,7 @@
     border-radius: 50%;
 }
 
+/* Status Colors */
 .status-takeoff {
     color: #2563eb;
 }
@@ -473,7 +521,9 @@
     color: var(--text-primary);
 }
 
-/* Project Card Footer */
+/* ==========================================================================
+   PROJECT CARD - Footer
+   ========================================================================== */
 .project-card-footer {
     display: flex;
     align-items: center;
@@ -481,6 +531,7 @@
     gap: 8px;
 }
 
+/* Member Avatars */
 .member-avatars {
     display: flex;
     align-items: center;
@@ -553,7 +604,7 @@
     font-family: "Adobe Clean Bold", sans-serif;
 }
 
-/* Footer Actions */
+/* Footer Action Buttons */
 .footer-actions {
     display: flex;
     align-items: center;
@@ -612,7 +663,9 @@
     border-color: #059669;
 }
 
-/* Direct Messages */
+/* ==========================================================================
+   DIRECT MESSAGES - User List
+   ========================================================================== */
 .content-item {
     display: flex;
     align-items: center;
@@ -628,6 +681,31 @@
     background: var(--bg-dim);
 }
 
+/* Direct Messages - Active State */
+.content-item.active,
+.dc-user-row.active {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(139, 92, 246, 0.08));
+    border-left: 3px solid var(--primary-color);
+    border-radius: 8px;
+}
+
+.content-item.active:hover,
+.dc-user-row.active:hover {
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(139, 92, 246, 0.12));
+}
+
+.content-item.active .content-item-name,
+.dc-user-row.active .content-item-name {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.content-item.active .content-item-avatar,
+.dc-user-row.active .content-item-avatar {
+    box-shadow: 0 0 0 2px var(--primary-color), 0 2px 8px rgba(79, 70, 229, 0.2);
+}
+
+/* Direct Message Avatar */
 .content-item-avatar {
     position: relative;
     width: 42px;
@@ -647,6 +725,7 @@
     font-family: "Adobe Clean Bold", sans-serif;
 }
 
+/* Online/Offline Status */
 .status-dot {
     position: absolute;
     bottom: 0px;
@@ -666,6 +745,7 @@
     background: #94a3b8;
 }
 
+/* Direct Message Info */
 .content-item-info {
     flex: 1;
     min-width: 0;
@@ -691,12 +771,15 @@
     text-overflow: ellipsis;
 }
 
-/* Virtual List */
+/* ==========================================================================
+   VIRTUAL LIST
+   ========================================================================== */
 .project-list-container {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
+    margin-top: 10px;
 }
 
 .project-list-info {
@@ -716,7 +799,9 @@
     color: var(--text-primary);
 }
 
-/* Loading Skeleton */
+/* ==========================================================================
+   LOADING SKELETON
+   ========================================================================== */
 .loading-state {
     display: flex;
     flex-direction: column;
@@ -729,18 +814,6 @@
     border-radius: 12px;
     padding: 16px;
     animation: skeletonPulse 1.5s ease-in-out infinite;
-}
-
-@keyframes skeletonPulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.5;
-    }
 }
 
 .skeleton-header {
@@ -801,7 +874,21 @@
     background: var(--bg-dim);
 }
 
-/* Error & Empty States */
+@keyframes skeletonPulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+/* ==========================================================================
+   ERROR & EMPTY STATES
+   ========================================================================== */
 .error-state,
 .no-projects {
     display: flex;
@@ -846,7 +933,9 @@
     color: white;
 }
 
-/* View Project */
+/* ==========================================================================
+   VIEW PROJECT MODAL
+   ========================================================================== */
 .view-project-content {
     display: flex;
     flex-direction: column;
@@ -915,7 +1004,9 @@
     font-size: 13px;
 }
 
-/* SimpleBar Customization */
+/* ==========================================================================
+   SIMPLEBAR CUSTOMIZATION
+   ========================================================================== */
 .simplebar-scrollbar::before {
     background: var(--text-muted);
     opacity: 0.2;
@@ -935,7 +1026,6 @@
     display: none;
 }
 
-/* Ensure SimpleBar content has proper padding at bottom */
 .simplebar-content-wrapper {
     padding-bottom: 0 !important;
 }
@@ -945,7 +1035,9 @@
     padding-bottom: 16px !important;
 }
 
-/* Animations */
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -956,7 +1048,9 @@
     }
 }
 
-/* Responsive */
+/* ==========================================================================
+   RESPONSIVE - Mobile (≤ 1024px)
+   ========================================================================== */
 @media (max-width: 1024px) {
     .sidebar.mobile {
         position: fixed;
@@ -1002,6 +1096,9 @@
     }
 }
 
+/* ==========================================================================
+   RESPONSIVE - Desktop (≥ 1025px)
+   ========================================================================== */
 @media (min-width: 1025px) {
     .sidebar.desktop {
         position: relative;

@@ -143,7 +143,7 @@ function AddProject({ open, onClose, onSuccess }) {
         setLoading(true);
         try {
             const token = localStorage.getItem('token');
-            const response = await fetch(`${API_BASE_URL}/api/projects`, {
+            const response = await fetch(`${API_BASE_URL}/api/project/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

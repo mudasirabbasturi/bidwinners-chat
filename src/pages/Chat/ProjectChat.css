@@ -426,3 +426,91 @@
     object-fit: cover;
     border-radius: 8px;
 }
+
+.chat-file-image-wrapper {
+    position: relative;
+    width: 200px;
+    max-width: 100%;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.chat-file-image-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, .35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+.chat-file-image-wrapper:hover .chat-file-image-overlay {
+    opacity: 1;
+}
+
+.chat-file-doc-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(0, 0, 0, .04);
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid rgba(0, 0, 0, .06);
+    transition: background .12s;
+    max-width: 350px;
+}
+
+.chat-file-doc-item:hover {
+    background: rgba(0, 0, 0, .07);
+}
+
+.chat-message-row.self .chat-file-doc-item {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .12);
+}
+
+.chat-file-doc-icon {
+    flex-shrink: 0;
+}
+
+.file-icon-pdf {
+    color: #ef4444;
+}
+
+.file-icon-other {
+    color: #60a5fa;
+}
+
+.chat-file-doc-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-file-doc-name {
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden !important;
+    text-overflow: ellipsis;
+}
+
+.chat-file-doc-type {
+    font-size: 10px;
+    opacity: .7;
+}
+
+.chat-file-doc-open {
+    flex-shrink: 0;
+    opacity: .6;
+}
+
+.chat-file-doc-info {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
