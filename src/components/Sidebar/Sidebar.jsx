@@ -403,33 +403,6 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const directMatch = location.pathname.match(/^\/direct-chat\/(\d+)$/);
     const partnerId = directMatch ? parseInt(directMatch[1], 10) : null;
 
-    // permission states
-    const [permissions, setPermissions] = useState([]);
-    const [permissionsLoading, setPermissionsLoading] = useState(true);
-    useEffect(() => {
-        const token = localStorage.getItem('token');
-        if (token) {
-            fetch(`${API_BASE_URL}/api/user-permissions`, {
-                headers: {
-                    'Accept': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                }
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.permissions) {
-                        setPermissions(data.permissions);
-                    }
-                })
-                .catch(err => console.error('Error fetching permissions:', err))
-                .finally(() => setPermissionsLoading(false));
-        }
-    }, []);
-
-    const hasPermission = (permissionName) => {
-        return permissions.some(p => p.name === permissionName);
-    };
-
     // API states
     const [allProjects, setAllProjects] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -733,15 +706,9 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                 searchable={true}
                                 className="status-dropdown"
                             />
-                            {/* <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
+                            <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
                                 <MdAdd size={20} />
-                            </button> */}
-                            {hasPermission('Create Project') && (
-                                <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
-                                    <MdAdd size={20} />
-                                </button>
-                            )}
-
+                            </button>
                         </div>
                         {error && (
                             <div className="error-state">
@@ -975,7 +942,6 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                 open={viewModalOpen}
                 onClose={() => setViewModalOpen(false)}
                 projectId={selectedProject?.id}
-                permissions={permissions}
             />
             {/* Edit Project Modal */}
             <EditProject
