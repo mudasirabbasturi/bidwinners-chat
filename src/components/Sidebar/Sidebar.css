@@ -24,14 +24,16 @@
 .sidebar-toggle-btn {
     position: fixed;
     top: 16px;
-    left: 16px;
+    right: 16px;
+    /* left: 16px; */
     width: 42px;
     height: 42px;
     border-radius: 12px;
     background: var(--primary-color);
     color: white;
     border: none;
-    display: flex;
+    display: none;
+    /* Hidden by default, shown on mobile */
     align-items: center;
     justify-content: center;
     cursor: pointer;
@@ -46,7 +48,7 @@
 }
 
 .sidebar-toggle-btn.open {
-    left: 280px;
+    /* left: 280px; */
     background: white;
     color: var(--text-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -56,8 +58,10 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 90;
+    z-index: 40;
+    /* Lower than sidebar's z-index: 50 */
     animation: fadeIn 0.2s ease;
+    pointer-events: auto;
 }
 
 /* ==========================================================================
@@ -303,7 +307,6 @@
     padding: 12px;
     transition: all 0.2s ease;
 }
-
 
 .project-card:hover {
     border-color: var(--primary-color);
@@ -1052,20 +1055,29 @@
    RESPONSIVE - Mobile (≤ 1024px)
    ========================================================================== */
 @media (max-width: 1024px) {
+
+    /* Show toggle button on mobile */
+    .sidebar-toggle-btn {
+        display: flex;
+    }
+
     .sidebar.mobile {
         position: fixed;
         left: 0;
         top: 0;
         transform: translateX(-100%);
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+        z-index: 50;
+        /* Ensure sidebar is above overlay */
     }
 
     .sidebar.mobile.open {
         transform: translateX(0);
     }
 
-    .sidebar-toggle-btn {
-        display: flex;
+    /* When sidebar is open, ensure toggle button is positioned correctly */
+    .sidebar-toggle-btn.open {
+        /* left: 280px; */
     }
 }
 
@@ -1075,7 +1087,7 @@
     }
 
     .sidebar-toggle-btn.open {
-        left: 260px;
+        /* left: 260px; */
     }
 
     .sidebar-header {
@@ -1106,10 +1118,10 @@
     }
 
     .sidebar-toggle-btn {
-        display: none;
+        display: none !important;
     }
 
     .sidebar-overlay {
-        display: none;
+        display: none !important;
     }
 }
