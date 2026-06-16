@@ -29,6 +29,7 @@ import ColumnEdit from '../Projects/ColumnEdit';
 import ContextMenu from '../Animation/ContextMenu';
 import JoinProject from '../Projects/JoinProject';
 import EditJoinProject from '../Projects/EditJoinProject';
+import { getUserPermissions } from '../../utils/permissions';
 
 import {
     MdFolderOpen, MdPerson, MdAttachMoney, MdOutlineSettings,
@@ -41,7 +42,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const USER_PROFILE_BASE_URL = 'https://enterprise.bidwinners.net';
 
 // Memoized Project Card
-const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject, onEditProject, onColumnEdit, onJoinProject, onEditJoinProject, onLeaveProject, getStatusInfo, getMemberAvatars, getUniqueMemberCount }) => {
+const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject, onEditProject, onColumnEdit, onJoinProject, onEditJoinProject, onLeaveProject, getStatusInfo, getMemberAvatars, getUniqueMemberCount, can }) => {
     const statusInfo = getStatusInfo(project.project_status);
     const memberAvatars = getMemberAvatars(project.team_members);
     const memberCount = getUniqueMemberCount(project.team_members);
@@ -56,197 +57,232 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
         }
     };
 
-    const contextMenuItems = useMemo(() => [
-        {
-            key: 'project_title',
-            label: 'Project Title',
-            icon: <MdFolderOpen size={16} />,
-            value: project.project_title || project.name,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_title'); }
-        },
-        {
-            key: 'project_address',
-            label: 'Project Address',
-            icon: <MdLocationOn size={16} />,
-            value: project.project_address,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_address'); }
-        },
-        {
-            key: 'client_name_for_admin',
-            label: 'Client Name ( only admin )',
-            icon: <MdPerson size={16} />,
-            value: project.client_name_for_admin,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'client_name_for_admin'); }
-        },
-        {
-            key: 'client_id',
-            label: 'Client Name',
-            icon: <MdFormatListNumbered size={16} />,
-            value: project.client_id,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'client_id'); }
-        },
-        {
-            key: 'project_pricing',
-            label: 'Pricing',
-            icon: <MdAttachMoney size={16} />,
-            value: project.project_pricing,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_pricing'); }
-        },
-        {
-            key: 'project_area',
-            label: 'Area',
-            icon: <MdOutlineSettings size={16} />,
-            value: project.project_area,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_area'); }
-        },
-        {
-            key: 'project_construction_type',
-            label: 'Construction Type',
-            icon: <MdBuild size={16} />,
-            value: project.project_construction_type,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_construction_type'); }
-        },
-        {
-            key: 'project_line_items_pricing',
-            label: 'Line Items Pricing',
-            icon: <MdAttachMoney size={16} />,
-            value: project.project_line_items_pricing,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_line_items_pricing'); }
-        },
-        {
-            key: 'project_floor_number',
-            label: 'Floor Number',
-            icon: <MdLayers size={16} />,
-            value: project.project_floor_number,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_floor_number'); }
-        },
-        {
-            key: 'project_main_scope',
-            label: 'Main Scope',
-            icon: <MdDescription size={16} />,
-            value: project.project_main_scope,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_main_scope'); }
-        },
-        {
-            key: 'project_scope_details',
-            label: 'Scope Details',
-            icon: <MdDescription size={16} />,
-            value: project.project_scope_details,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_scope_details'); }
-        },
-        {
-            key: 'project_template',
-            label: 'Project Template',
-            icon: <MdFolderOpen size={16} />,
-            value: project.project_template,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_template'); }
-        },
-        {
-            key: 'project_init_link',
-            label: 'Initial Link',
-            icon: <MdLink size={16} />,
-            value: project.project_init_link,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_init_link'); }
-        },
-        {
-            key: 'project_final_link',
-            label: 'Final Link',
-            icon: <MdLink size={16} />,
-            value: project.project_final_link,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_final_link'); }
-        },
-        {
-            key: 'project_admin_notes',
-            label: 'Admin Notes',
-            icon: <MdNote size={16} />,
-            value: project.project_admin_notes,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_admin_notes'); }
-        },
-        {
-            key: 'project_notes_estimator',
-            label: 'Estimator Notes',
-            icon: <MdNote size={16} />,
-            value: project.project_notes_estimator,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_notes_estimator'); }
-        },
-        {
-            key: 'notes_private',
-            label: 'Private Notes',
-            icon: <MdNote size={16} />,
-            value: project.notes_private,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'notes_private'); }
-        },
-        {
-            key: 'budget_total',
-            label: 'Budget Total',
-            icon: <MdAttachMoney size={16} />,
-            value: project.budget_total,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'budget_total'); }
-        },
-        {
-            key: 'deduction_amount',
-            label: 'Deduction Amount',
-            icon: <MdAttachMoney size={16} />,
-            value: project.deduction_amount,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'deduction_amount'); }
-        },
-        {
-            key: 'project_due_date',
-            label: 'Due Date',
-            icon: <MdTimer size={16} />,
-            value: project.project_due_date,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_due_date'); }
-        },
-        {
-            key: 'project_points',
-            label: 'Points',
-            icon: <MdFlag size={16} />,
-            value: project.project_points,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_points'); }
-        },
-        {
-            key: 'project_status',
-            label: 'Status',
-            icon: <MdOutlineSettings size={16} />,
-            value: project.project_status,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_status'); }
-        },
-        {
-            key: 'project_source',
-            label: 'Source',
-            icon: <MdOutlineSettings size={16} />,
-            value: project.project_source,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_source'); }
-        },
-        {
-            key: 'preview_status',
-            label: 'Preview Status',
-            icon: <MdOutlineSettings size={16} />,
-            value: project.preview_status,
-            onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'preview_status'); }
-        },
-        {
-            key: 'late',
-            label: 'Late Status',
-            icon: <MdWarning size={16} />,
-            value: project.late ? 'Yes' : 'No',
-            readOnly: true
-        },
-        {
-            key: 'created_at',
-            label: 'Created At',
-            icon: <MdDateRange size={16} />,
-            value: project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
-            readOnly: true
-        },
-        {
-            key: 'updated_at',
-            label: 'Updated At',
-            icon: <MdDateRange size={16} />,
-            value: project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '',
-            readOnly: true
-        }
-    ], [project, onColumnEdit]);
+    const contextMenuItems = useMemo(() => {
+        const allItems = [
+            {
+                key: 'project_title',
+                label: 'Project Title',
+                icon: <MdFolderOpen size={16} />,
+                value: project.project_title || project.name,
+                viewPermission: 'Update Project Title',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_title'); }
+            },
+            {
+                key: 'project_address',
+                label: 'Project Address',
+                icon: <MdLocationOn size={16} />,
+                value: project.project_address,
+                viewPermission: 'Update Project Address',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_address'); }
+            },
+            {
+                key: 'client_name_for_admin',
+                label: 'Client Name ( only admin )',
+                icon: <MdPerson size={16} />,
+                value: project.client_name_for_admin,
+                viewPermission: 'View Client Admin',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'client_name_for_admin'); }
+            },
+            {
+                key: 'client_id',
+                label: 'Client Name',
+                icon: <MdFormatListNumbered size={16} />,
+                value: project.client_id,
+                viewPermission: 'Update Project Client',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'client_id'); }
+            },
+            {
+                key: 'project_pricing',
+                label: 'Pricing',
+                icon: <MdAttachMoney size={16} />,
+                value: project.project_pricing,
+                viewPermission: 'Update Project Pricing',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_pricing'); }
+            },
+            {
+                key: 'project_area',
+                label: 'Area',
+                icon: <MdOutlineSettings size={16} />,
+                value: project.project_area,
+                viewPermission: 'Update Project Area',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_area'); }
+            },
+            {
+                key: 'project_construction_type',
+                label: 'Construction Type',
+                icon: <MdBuild size={16} />,
+                value: project.project_construction_type,
+                viewPermission: 'Update Construction Type',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_construction_type'); }
+            },
+            {
+                key: 'project_line_items_pricing',
+                label: 'Line Items Pricing',
+                icon: <MdAttachMoney size={16} />,
+                value: project.project_line_items_pricing,
+                viewPermission: 'Update LineItems Pricing',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_line_items_pricing'); }
+            },
+            {
+                key: 'project_floor_number',
+                label: 'Floor Number',
+                icon: <MdLayers size={16} />,
+                value: project.project_floor_number,
+                viewPermission: 'Update Floor Number',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_floor_number'); }
+            },
+            {
+                key: 'project_main_scope',
+                label: 'Main Scope',
+                icon: <MdDescription size={16} />,
+                value: project.project_main_scope,
+                viewPermission: 'Update Main Scope',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_main_scope'); }
+            },
+            {
+                key: 'project_scope_details',
+                label: 'Scope Details',
+                icon: <MdDescription size={16} />,
+                value: project.project_scope_details,
+                viewPermission: 'Update Scope Details',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_scope_details'); }
+            },
+            {
+                key: 'project_template',
+                label: 'Project Template',
+                icon: <MdFolderOpen size={16} />,
+                value: project.project_template,
+                viewPermission: 'Update Project Template',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_template'); }
+            },
+            {
+                key: 'project_init_link',
+                label: 'Initial Link',
+                icon: <MdLink size={16} />,
+                value: project.project_init_link,
+                viewPermission: 'View Initial Link(onside)',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_init_link'); }
+            },
+            {
+                key: 'project_final_link',
+                label: 'Final Link',
+                icon: <MdLink size={16} />,
+                value: project.project_final_link,
+                viewPermission: 'View Final Link(offside)',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_final_link'); }
+            },
+            {
+                key: 'project_admin_notes',
+                label: 'Admin Notes',
+                icon: <MdNote size={16} />,
+                value: project.project_admin_notes,
+                viewPermission: 'View Admin Notes',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_admin_notes'); }
+            },
+            {
+                key: 'project_notes_estimator',
+                label: 'Estimator Notes',
+                icon: <MdNote size={16} />,
+                value: project.project_notes_estimator,
+                viewPermission: 'Update Estimator Notes',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_notes_estimator'); }
+            },
+            {
+                key: 'notes_private',
+                label: 'Private Notes',
+                icon: <MdNote size={16} />,
+                value: project.notes_private,
+                viewPermission: 'View Client Personal',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'notes_private'); }
+            },
+            {
+                key: 'budget_total',
+                label: 'Budget Total',
+                icon: <MdAttachMoney size={16} />,
+                value: project.budget_total,
+                viewPermission: 'View Budget',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'budget_total'); }
+            },
+            {
+                key: 'deduction_amount',
+                label: 'Deduction Amount',
+                icon: <MdAttachMoney size={16} />,
+                value: project.deduction_amount,
+                viewPermission: 'View Deduction',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'deduction_amount'); }
+            },
+            {
+                key: 'project_due_date',
+                label: 'Due Date',
+                icon: <MdTimer size={16} />,
+                value: project.project_due_date,
+                viewPermission: 'Update Due Date',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_due_date'); }
+            },
+            {
+                key: 'project_points',
+                label: 'Points',
+                icon: <MdFlag size={16} />,
+                value: project.project_points,
+                viewPermission: 'View All Points',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_points'); }
+            },
+            {
+                key: 'project_status',
+                label: 'Status',
+                icon: <MdOutlineSettings size={16} />,
+                value: project.project_status,
+                viewPermission: 'Update Project Status',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_status'); }
+            },
+            {
+                key: 'project_source',
+                label: 'Source',
+                icon: <MdOutlineSettings size={16} />,
+                value: project.project_source,
+                viewPermission: 'Update Project Source',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'project_source'); }
+            },
+            {
+                key: 'preview_status',
+                label: 'Preview Status',
+                icon: <MdOutlineSettings size={16} />,
+                value: project.preview_status,
+                viewPermission: 'Update Preview Status',
+                onEdit: () => { setMenuOpen(false); onColumnEdit(project, 'preview_status'); }
+            },
+            {
+                key: 'late',
+                label: 'Late Status',
+                icon: <MdWarning size={16} />,
+                value: project.late ? 'Yes' : 'No',
+                readOnly: true
+            },
+            {
+                key: 'created_at',
+                label: 'Created At',
+                icon: <MdDateRange size={16} />,
+                value: project.created_at ? new Date(project.created_at).toLocaleDateString() : '',
+                readOnly: true
+            },
+            {
+                key: 'updated_at',
+                label: 'Updated At',
+                icon: <MdDateRange size={16} />,
+                value: project.updated_at ? new Date(project.updated_at).toLocaleDateString() : '',
+                readOnly: true
+            }
+        ];
+
+        // Filter items based on permissions
+        return allItems.filter(item => {
+            if (item.readOnly) return true; // Always show read-only items
+            if (item.viewPermission) {
+                return can(item.viewPermission);
+            }
+            return true; // Show items without permission requirement
+        });
+    }, [project, onColumnEdit, can]);
 
     const isActive = project.id === activeProjectId;
 
@@ -372,13 +408,15 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
                     >
                         <MdVisibility size={15} />
                     </button>
-                    <button
-                        className="action-icon-btn edit-btn"
-                        title="Edit Project"
-                        onClick={() => onEditProject(project)}
-                    >
-                        <MdEdit size={15} />
-                    </button>
+                    {can('Update Project') && (
+                        <button
+                            className="action-icon-btn edit-btn"
+                            title="Edit Project"
+                            onClick={() => onEditProject(project)}
+                        >
+                            <MdEdit size={15} />
+                        </button>
+                    )}
                 </div>
             </div>
         </div>
@@ -390,6 +428,21 @@ ProjectCard.displayName = 'ProjectCard';
 const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [permissions, setPermissions] = useState([]);
+    const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        getUserPermissions().then(result => {
+            if (result) {
+                setPermissions(result.permissions);
+                setUser(result.user);
+            }
+        });
+    }, []);
+
+    const can = useCallback((permName) => {
+        return permissions.some(p => p.name === permName);
+    }, [permissions]);
 
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
     const [statusFilter, setStatusFilter] = useState('All');
@@ -706,9 +759,13 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                 searchable={true}
                                 className="status-dropdown"
                             />
-                            <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
-                                <MdAdd size={20} />
-                            </button>
+
+                            {can('Create Project') &&
+                                <button className="add-btn" title="Add Project" onClick={() => setAddModalOpen(true)}>
+                                    <MdAdd size={20} />
+                                </button>
+                            }
+
                         </div>
                         {error && (
                             <div className="error-state">
@@ -780,6 +837,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                                         getStatusInfo={getStatusInfo}
                                                         getMemberAvatars={getMemberAvatars}
                                                         getUniqueMemberCount={getUniqueMemberCount}
+                                                        can={can}
                                                     />
                                                 </div>
                                             ))}
@@ -880,7 +938,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                         </div>
                         <div className="sidebar-user">
                             <div className="user-avatar">
-                                <span>{localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).name?.charAt(0)?.toUpperCase() : '?'}</span>
+                                <span>{user?.name?.charAt(0)?.toUpperCase() || '?'}</span>
                             </div>
                             <button className="logout-btn" onClick={() => {
                                 localStorage.removeItem('token');
