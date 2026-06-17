@@ -175,11 +175,7 @@ function EditProject({ open, onClose, onSuccess, projectId, showToast, publishPr
                 onSuccess?.(data.data || data.project || { id: projectId, name: formData.project_title, ...formData });
                 onClose();
                 showToast?.('success', 'Project Updated', 'Project has been updated successfully');
-                publishProjectEvent?.('edit-project', {
-                    id: projectId,
-                    ...formData,
-                    name: formData.project_title,
-                }, formData.project_title);
+                publishProjectEvent?.('edit-project', { id: projectId }, formData.project_title);
             } else {
                 showToast?.('error', 'Failed to Update Project', data.message || 'Something went wrong');
             }

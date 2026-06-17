@@ -633,7 +633,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    pointer-events: none; /* Crucial so it doesn't interfere with drag events */
+    pointer-events: none;
+    /* Crucial so it doesn't interfere with drag events */
     backdrop-filter: blur(4px);
     transition: all 0.2s ease;
 }
@@ -669,6 +670,7 @@
         transform: scale(0.9);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;
@@ -676,9 +678,12 @@
 }
 
 @keyframes dcBounce {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translateY(0);
     }
+
     50% {
         transform: translateY(-8px);
     }
@@ -688,12 +693,13 @@
 .dc-lightbox-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,.85);
+    background: rgba(0, 0, 0, .85);
     z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+
 .dc-lightbox-inner {
     position: relative;
     max-width: 90vw;
@@ -703,32 +709,36 @@
     align-items: center;
     gap: 16px;
 }
+
 .dc-lightbox-img {
     max-width: 100%;
     max-height: 80vh;
     object-fit: contain;
     border-radius: 8px;
 }
+
 .dc-lightbox-actions {
     display: flex;
     gap: 12px;
 }
+
 .dc-lightbox-btn {
     display: flex;
     align-items: center;
     gap: 6px;
     padding: 8px 18px;
     border-radius: 8px;
-    background: rgba(255,255,255,.15);
+    background: rgba(255, 255, 255, .15);
     color: #fff;
-    border: 1px solid rgba(255,255,255,.3);
+    border: 1px solid rgba(255, 255, 255, .3);
     cursor: pointer;
     font-size: 14px;
     text-decoration: none;
 }
+
 .dc-lightbox-btn.close {
-    background: rgba(239,68,68,.25);
-    border-color: rgba(239,68,68,.5);
+    background: rgba(239, 68, 68, .25);
+    border-color: rgba(239, 68, 68, .5);
 }
 
 /* File Actions */
@@ -737,6 +747,7 @@
     gap: 4px;
     margin-left: auto;
 }
+
 .dc-file-action-btn {
     display: flex;
     align-items: center;
@@ -744,14 +755,15 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: rgba(99,102,241,.1);
+    background: rgba(99, 102, 241, .1);
     border: none;
     cursor: pointer;
     color: var(--primary-color);
     text-decoration: none;
 }
+
 .dc-message-row.self .dc-file-action-btn {
-    background: rgba(255,255,255,.15);
+    background: rgba(255, 255, 255, .15);
     color: white;
 }
 
@@ -762,14 +774,17 @@
     gap: 8px;
     padding: 4px 0;
 }
+
 .dc-audio-icon {
     color: var(--primary-color);
     display: flex;
     align-items: center;
 }
+
 .dc-message-row.self .dc-audio-icon {
     color: white;
 }
+
 .dc-audio-player {
     height: 36px;
     min-width: 200px;
@@ -783,14 +798,19 @@
     color: #ef4444;
     animation: dc-pulse-rec 1.2s ease-in-out infinite;
 }
+
 @keyframes dc-pulse-rec {
-    0%, 100% {
+
+    0%,
+    100% {
         box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
     }
+
     50% {
         box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
     }
 }
+
 .dc-recording-indicator {
     display: flex;
     align-items: center;
@@ -798,6 +818,7 @@
     flex: 1;
     padding: 0 12px;
 }
+
 .dc-recording-dot {
     width: 10px;
     height: 10px;
@@ -805,12 +826,14 @@
     background: #ef4444;
     animation: dc-pulse-rec 1.2s ease-in-out infinite;
 }
+
 .dc-recording-time {
     font-size: 15px;
     font-weight: 600;
     color: #ef4444;
     font-variant-numeric: tabular-nums;
 }
+
 .dc-recording-label {
     font-size: 13px;
     color: var(--text-secondary);

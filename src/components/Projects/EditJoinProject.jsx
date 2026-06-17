@@ -138,7 +138,7 @@ function EditJoinProject({ open, onClose, onSuccess, teamMember, project, showTo
             const data = await response.json();
 
             if (data.status) {
-                onSuccess?.(data.data || data.project || project);
+                onSuccess?.();
                 onClose();
                 showToast?.('success', 'Tasks Updated', data.message || 'Tasks updated successfully');
                 publishProjectEvent?.('edit-join', project, project?.name);

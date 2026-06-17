@@ -289,12 +289,7 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field, showToast, pub
                 showToast?.('success', 'Updated Successfully', `${fieldConfig.label} has been updated`);
                 publishProjectEvent?.(
                     'column-edit',
-                    {
-                        ...(selectedProject || {}),
-                        id: projectId,
-                        [field]: currentValue,
-                        name: selectedProject?.name || selectedProject?.project_title || 'Unknown Project',
-                    },
+                    selectedProject || { id: projectId },
                     selectedProject?.name || selectedProject?.project_title || 'Unknown Project'
                 );
             } else {

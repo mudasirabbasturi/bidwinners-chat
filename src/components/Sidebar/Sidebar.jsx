@@ -538,15 +538,10 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             const channel = ablyClient.channels.get('project-updates');
             const userStr = localStorage.getItem('user');
             const currentUser = userStr ? JSON.parse(userStr) : null;
-            // Normalize project so it always has a `name` field
-            const normalizedProject = project
-                ? { ...project, name: project.name || project.project_title || projectName || 'Unknown Project' }
-                : null;
             channel.publish('project-event', {
                 action,
                 projectId: project?.id,
                 projectName: projectName || project?.name || project?.project_title || 'Unknown Project',
-                projectData: normalizedProject,   // full project object for silent updates
                 actorName: currentUser?.name || 'Someone',
                 actorId: currentUser?.id,
                 timestamp: Date.now(),
@@ -573,10 +568,10 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const fetchProjects = useCallback(async (silent = false) => {
-        if (!silent) setLoading(true);
-        if (!silent) setError(null);
- 
+    const fetchProjects = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+
         try {
             const url = `${API_BASE_URL}/api/chat-project-list`;
             const token = localStorage.getItem('token');
@@ -587,13 +582,13 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                     'Authorization': `Bearer ${token}`,
                 }
             });
- 
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
- 
+
             const data = await response.json();
- 
+
             if (data?.projects?.data) {
                 setAllProjects(data.projects.data);
                 onProjectsLoaded?.(data.projects.data);
@@ -603,9 +598,9 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             }
         } catch (err) {
             console.error('Error fetching projects:', err);
-            if (!silent) setError(err.message);
+            setError(err.message);
         } finally {
-            if (!silent) setLoading(false);
+            setLoading(false);
         }
     }, [onProjectsLoaded]);
 
@@ -664,16 +659,9 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             const data = await response.json();
 
             if (data.status) {
-                // Optimistically remove the leaving member from local state
-                const updatedProject = {
-                    ...project,
-                    team_members: (project.team_members || []).filter(m => m.id !== teamMember.id),
-                };
-                setAllProjects(prev =>
-                    prev.map(p => p.id === project.id ? updatedProject : p)
-                );
+                fetchProjects();
                 showToast('success', 'Left Project', `You have left "${project.name || 'the project'}"`);
-                publishProjectEvent('leave-project', updatedProject, project.name);
+                publishProjectEvent('leave-project', project, project.name);
             } else {
                 showToast('error', 'Failed to Leave', data.message || 'Failed to leave project');
             }
@@ -685,18 +673,11 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
 
     const handleJoinSuccess = (updatedProject) => {
         if (updatedProject) {
-            const normalized = {
-                ...updatedProject,
-                name: updatedProject.name || updatedProject.project_title || 'Untitled Project',
-                team_members: updatedProject.team_members || [],
-            };
             setAllProjects(prev =>
-                prev.map(p => p.id === normalized.id ? { ...p, ...normalized } : p)
+                prev.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p)
             );
-        } else {
-            // Fallback: silent fetch if no project data returned
-            fetchProjects(true);
         }
+        fetchProjects();
     };
 
     const handleColumnEdit = useCallback((project, field) => {
@@ -706,17 +687,21 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         setColumnEditOpen(true);
     }, []);
 
-    const handleColumnEditSuccess = useCallback((updateInfo) => {
-        if (updateInfo && updateInfo.projectId) {
-            setAllProjects(prev =>
-                prev.map(p => p.id === updateInfo.projectId ? { ...p, [updateInfo.field]: updateInfo.value } : p)
-            );
-        } else {
-            fetchProjects(true);
-        }
-    }, [fetchProjects]);
+    // const handleColumnEditSuccess = useCallback((updateInfo) => {
+    //     if (updateInfo && updateInfo.projectId) {
+    //         setAllProjects(prev =>
+    //             prev.map(p => p.id === updateInfo.projectId ? { ...p, [updateInfo.field]: updateInfo.value } : p)
+    //         );
+    //     } else {
+    //         fetchProjects();
+    //     }
+    // }, [fetchProjects]);
 
     // Form states
+
+    const handleColumnEditSuccess = useCallback(() => {
+        fetchProjects();
+    }, [fetchProjects]);
     const [editTitle, setEditTitle] = useState('');
 
     const parentRef = useRef(null);
@@ -759,65 +744,12 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         const currentUserId = userStr ? JSON.parse(userStr)?.id : null;
 
         const handleProjectEvent = (msg) => {
-            const { action, actorId, actorName, projectName, projectData, projectId } = msg.data || {};
+            const { action, actorId, actorName, projectName } = msg.data || {};
             // Only react to events from other users
             if (String(actorId) === String(currentUserId)) return;
 
+            fetchProjects();
             playNotificationSound();
-
-            // Apply silent state updates — same behaviour as the local user's optimistic update
-            if (action === 'add-project' && projectData) {
-                // Normalize and prepend the new project — no skeleton, no full reload
-                const normalized = {
-                    ...projectData,
-                    name: projectData.name || projectData.project_title || projectName || 'Untitled Project',
-                    team_members: projectData.team_members || [],
-                };
-                setAllProjects(prev => {
-                    // Avoid duplicates (e.g. if the event fires twice)
-                    if (prev.some(p => p.id === normalized.id)) return prev;
-                    return [normalized, ...prev];
-                });
-            } else if (
-                (action === 'edit-project' || action === 'join-project' || action === 'edit-join') &&
-                projectData && projectId
-            ) {
-                setAllProjects(prev => {
-                    const exists = prev.some(p => p.id === projectId);
-                    if (!exists) {
-                        // Newly visible project (e.g. joined) — append it
-                        const normalized = {
-                            ...projectData,
-                            name: projectData.name || projectData.project_title || projectName || 'Untitled Project',
-                            team_members: projectData.team_members || [],
-                        };
-                        return [...prev, normalized];
-                    }
-                    return prev.map(p =>
-                        p.id === projectId
-                            ? { ...p, ...projectData, name: projectData.name || projectData.project_title || p.name }
-                            : p
-                    );
-                });
-            } else if (action === 'leave-project' && projectId) {
-                // Remove the leaving member from team_members silently
-                setAllProjects(prev =>
-                    prev.map(p =>
-                        p.id === projectId
-                            ? { ...p, ...( projectData || {} ), name: (projectData?.name || projectData?.project_title) || p.name }
-                            : p
-                    )
-                );
-            } else if (action === 'column-edit' && projectData && projectId) {
-                setAllProjects(prev =>
-                    prev.map(p =>
-                        p.id === projectId ? { ...p, ...projectData } : p
-                    )
-                );
-            } else {
-                // Fallback: silent fetch (no skeleton)
-                fetchProjects(true);
-            }
 
             const actionLabels = {
                 'add-project': `${actorName} added project "${projectName}"`,
@@ -827,8 +759,8 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                 'edit-join': `${actorName} updated tasks in "${projectName}"`,
                 'leave-project': `${actorName} left project "${projectName}"`,
             };
-            const toastMsg = actionLabels[action] || `${actorName} made changes to "${projectName}"`;
-            showToast('info', 'Project Update', toastMsg);
+            const msg2 = actionLabels[action] || `${actorName} made changes to "${projectName}"`;
+            showToast('info', 'Project Update', msg2);
         };
 
         channel.subscribe('project-event', handleProjectEvent);
@@ -929,28 +861,30 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         setEditModalOpen(true);
     }, []);
 
-    const handleAddSuccess = useCallback((newProject) => {
-        if (newProject) {
-            // Normalize: the API returns project_title but the card renders project.name
-            const normalized = {
-                ...newProject,
-                name: newProject.name || newProject.project_title || 'Untitled Project',
-                team_members: newProject.team_members || [],
-            };
-            setAllProjects(prev => [normalized, ...prev]);
-        } else {
-            fetchProjects(true);
-        }
+    // const handleAddSuccess = useCallback((newProject) => {
+    //     if (newProject) {
+    //         setAllProjects(prev => [newProject, ...prev]);
+    //     } else {
+    //         fetchProjects();
+    //     }
+    // }, [fetchProjects]);
+
+    const handleAddSuccess = useCallback(() => {
+        fetchProjects();
     }, [fetchProjects]);
 
-    const handleEditProjectSuccess = useCallback((updatedProject) => {
-        if (updatedProject) {
-            setAllProjects(prev =>
-                prev.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p)
-            );
-        } else {
-            fetchProjects(true);
-        }
+    // const handleEditProjectSuccess = useCallback((updatedProject) => {
+    //     if (updatedProject) {
+    //         setAllProjects(prev =>
+    //             prev.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p)
+    //         );
+    //     } else {
+    //         fetchProjects();
+    //     }
+    // }, [fetchProjects]);
+
+    const handleEditProjectSuccess = useCallback(() => {
+        fetchProjects();
     }, [fetchProjects]);
 
     const getStatusInfo = useCallback((status) => {
@@ -1331,7 +1265,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                             setEditJoinProjectData(null);
                             setTeamMemberToEdit(null);
                         }}
-                        onSuccess={handleJoinSuccess}
+                        onSuccess={() => fetchProjects()}
                         teamMember={teamMemberToEdit}
                         project={editJoinProjectData}
                         showToast={showToast}
