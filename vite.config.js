@@ -221,7 +221,7 @@ export default defineConfig({
         ],
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: false,
+        skipWaiting: true,
 
         // Runtime caching strategies
         runtimeCaching: [
