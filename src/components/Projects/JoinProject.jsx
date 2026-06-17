@@ -1,7 +1,8 @@
 // components/Projects/JoinProject.jsx
 import { useState, useEffect, useRef } from 'react';
 import { MdClose, MdPersonAdd, MdAdd, MdCheck } from 'react-icons/md';
-import Toast from '../Toast/Toast';
+import SimpleBar from 'simplebar-react';
+import 'simplebar-react/dist/simplebar.min.css';
 import './JoinProject.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -20,13 +21,12 @@ const DEFAULT_STEPS = [
     { key: 'Quality Assurance', label: 'Quality Assurance' },
 ];
 
-function JoinProject({ open, onClose, onSuccess, project }) {
+function JoinProject({ open, onClose, onSuccess, project, showToast, publishProjectEvent }) {
     const [loading, setLoading] = useState(false);
     const [values, setValues] = useState(INITIAL_STATE);
     const [selectedSteps, setSelectedSteps] = useState([]);
     const [customSteps, setCustomSteps] = useState([]);
     const [newStepInput, setNewStepInput] = useState('');
-    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
     const newStepInputRef = useRef(null);
 
     // Initialize form when modal opens
@@ -46,10 +46,6 @@ function JoinProject({ open, onClose, onSuccess, project }) {
             setNewStepInput('');
         }
     }, [open, project]);
-
-    const showToast = (type, message, description = '') => {
-        setToast({ show: true, type, message, description });
-    };
 
     const handleStepChange = (stepKey, checked) => {
         setSelectedSteps(prev =>
@@ -95,7 +91,7 @@ function JoinProject({ open, onClose, onSuccess, project }) {
 
     const handleSubmit = async () => {
         if (selectedSteps.length === 0) {
-            showToast('warning', 'No Steps Selected', 'Please select at least one task');
+            showToast?.('warning', 'No Steps Selected', 'Please select at least one task');
             return;
         }
 
@@ -120,13 +116,14 @@ function JoinProject({ open, onClose, onSuccess, project }) {
                 setNewStepInput('');
                 onSuccess?.(data.project || data.data);
                 onClose();
-                showToast('success', 'Joined Successfully', data.message || 'You have joined the project');
+                showToast?.('success', 'Joined Successfully', data.message || 'You have joined the project');
+                publishProjectEvent?.('join-project', data.project || data.data || values, project.name);
             } else {
-                showToast('error', 'Failed to Join', data.message || 'Something went wrong');
+                showToast?.('error', 'Failed to Join', data.message || 'Something went wrong');
             }
         } catch (error) {
             console.error('Error joining project:', error);
-            showToast('error', 'Network Error', 'Failed to connect to server');
+            showToast?.('error', 'Network Error', 'Failed to connect to server');
         } finally {
             setLoading(false);
         }
@@ -144,16 +141,6 @@ function JoinProject({ open, onClose, onSuccess, project }) {
 
     return (
         <>
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                description={toast.description}
-                show={toast.show}
-                duration={4000}
-                onClose={() => setToast(prev => ({ ...prev, show: false }))}
-                position="top-right"
-            />
-
             {open && (
                 <div className="join-project-overlay" onClick={handleClose}>
                     <div className="join-project-modal" onClick={(e) => e.stopPropagation()}>
@@ -172,7 +159,7 @@ function JoinProject({ open, onClose, onSuccess, project }) {
                         </div>
 
                         {/* Body */}
-                        <div className="join-project-body">
+                        <SimpleBar className="join-project-body" style={{ maxHeight: '50vh' }}>
                             <div className="join-project-section">
                                 <h4 className="join-project-section-title">Choose Tasks To Join The Project</h4>
 
@@ -234,7 +221,7 @@ function JoinProject({ open, onClose, onSuccess, project }) {
                                     </button>
                                 </div>
                             </div>
-                        </div>
+                        </SimpleBar>
 
                         {/* Footer */}
                         <div className="join-project-footer">

@@ -7,7 +7,7 @@ import 'simplebar-react/dist/simplebar.min.css';
 import Input from '../Input/Input';
 import Modal from '../Modal/Modal';
 import DropdownSelect from '../DropdownSelect/DropdownSelect';
-import Toast from '../Toast/Toast';
+
 import { Row, Col } from '../Grid/Grid';
 import './style.css';
 
@@ -38,7 +38,7 @@ const EMPTY_STATE = {
     preview_status: 'active',
 };
 
-function EditProject({ open, onClose, onSuccess, projectId }) {
+function EditProject({ open, onClose, onSuccess, projectId, showToast, publishProjectEvent }) {
     const [fetchLoading, setFetchLoading] = useState(false);
     const [saveLoading, setSaveLoading] = useState(false);
     const [formData, setFormData] = useState(EMPTY_STATE);
@@ -46,7 +46,6 @@ function EditProject({ open, onClose, onSuccess, projectId }) {
     const [clients, setClients] = useState([]);
     const [clientsLoading, setClientsLoading] = useState(false);
     const [selectedClientNotes, setSelectedClientNotes] = useState('');
-    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
 
     /* ── Fetch project & clients when modal opens ── */
     useEffect(() => {
@@ -101,9 +100,6 @@ function EditProject({ open, onClose, onSuccess, projectId }) {
             .finally(() => setFetchLoading(false));
     }, [open, projectId]);
 
-    const showToast = (type, message, description = '') => {
-        setToast({ show: true, type, message, description });
-    };
 
     const clientOptions = clients.map(client => ({
         value: client.id,
@@ -176,15 +172,20 @@ function EditProject({ open, onClose, onSuccess, projectId }) {
             });
             const data = await response.json();
             if (data.status) {
-                onSuccess?.();
+                onSuccess?.(data.data || data.project || { id: projectId, name: formData.project_title, ...formData });
                 onClose();
-                showToast('success', 'Project Updated', 'Project has been updated successfully');
+                showToast?.('success', 'Project Updated', 'Project has been updated successfully');
+                publishProjectEvent?.('edit-project', {
+                    id: projectId,
+                    ...formData,
+                    name: formData.project_title,
+                }, formData.project_title);
             } else {
-                showToast('error', 'Failed to Update Project', data.message || 'Something went wrong');
+                showToast?.('error', 'Failed to Update Project', data.message || 'Something went wrong');
             }
         } catch (error) {
             console.error('Error updating project:', error);
-            showToast('error', 'Network Error', 'Failed to connect to server. Please try again.');
+            showToast?.('error', 'Network Error', 'Failed to connect to server. Please try again.');
         } finally {
             setSaveLoading(false);
         }
@@ -198,16 +199,6 @@ function EditProject({ open, onClose, onSuccess, projectId }) {
 
     return (
         <>
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                description={toast.description}
-                show={toast.show}
-                duration={4000}
-                onClose={() => setToast(prev => ({ ...prev, show: false }))}
-                position="top-right"
-            />
-
             <Modal
                 open={open}
                 onClose={handleClose}

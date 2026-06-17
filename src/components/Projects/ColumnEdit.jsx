@@ -5,7 +5,6 @@ import ReactQuill from 'react-quill-new';
 import 'react-quill-new/dist/quill.snow.css';
 import Input from '../Input/Input';
 import DropdownSelect from '../DropdownSelect/DropdownSelect';
-import Toast from '../Toast/Toast';
 import './ColumnEdit.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -91,11 +90,10 @@ const getInitialState = () => ({
     selectedClientNotes: '',
 });
 
-function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
+function ColumnEdit({ open, onClose, onSuccess, projectId, field, showToast, publishProjectEvent, selectedProject }) {
     const [loading, setLoading] = useState(false);
     const [fetchLoading, setFetchLoading] = useState(false);
     const [{ value, originalValue, selectedClientNotes }, setFieldState] = useState(getInitialState());
-    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
 
     // Client specific states
     const [clients, setClients] = useState([]);
@@ -185,11 +183,11 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
                     selectedClientNotes: notes,
                 });
             } else {
-                showToast('error', 'Failed to load', valueRes.message);
+        showToastLocal('error', 'Failed to load', valueRes.message);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
-            showToast('error', 'Network Error', 'Failed to load data');
+            showToastLocal('error', 'Network Error', 'Failed to load data');
         } finally {
             setFetchLoading(false);
             setClientsLoading(false);
@@ -216,11 +214,11 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
                     originalValue: val,
                 }));
             } else {
-                showToast('error', 'Failed to load', data.message);
+                showToastLocal('error', 'Failed to load', data.message);
             }
         } catch (error) {
             console.error('Error fetching column value:', error);
-            showToast('error', 'Network Error', 'Failed to load data');
+            showToastLocal('error', 'Network Error', 'Failed to load data');
         } finally {
             setFetchLoading(false);
         }
@@ -231,8 +229,8 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
         label: client.name,
     }));
 
-    const showToast = (type, message, description = '') => {
-        setToast({ show: true, type, message, description });
+    const showToastLocal = (type, message, description = '') => {
+        showToast?.(type, message, description);
     };
 
     const handleValueChange = (newValue) => {
@@ -264,7 +262,7 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
         const currentValue = valueRef.current;
 
         if (currentValue === originalValue) {
-            showToast('info', 'No Changes', 'No modifications were made');
+            showToast?.('info', 'No Changes', 'No modifications were made');
             return;
         }
 
@@ -286,15 +284,25 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
                 setFieldState(getInitialState());
                 setClients([]);
                 valueRef.current = '';
-                onSuccess?.();
+                onSuccess?.({ projectId, field, value: currentValue });
                 onClose();
-                showToast('success', 'Updated Successfully', `${fieldConfig.label} has been updated`);
+                showToast?.('success', 'Updated Successfully', `${fieldConfig.label} has been updated`);
+                publishProjectEvent?.(
+                    'column-edit',
+                    {
+                        ...(selectedProject || {}),
+                        id: projectId,
+                        [field]: currentValue,
+                        name: selectedProject?.name || selectedProject?.project_title || 'Unknown Project',
+                    },
+                    selectedProject?.name || selectedProject?.project_title || 'Unknown Project'
+                );
             } else {
-                showToast('error', 'Failed to Update', data.message || 'Something went wrong');
+                showToast?.('error', 'Failed to Update', data.message || 'Something went wrong');
             }
         } catch (error) {
             console.error('Error updating column:', error);
-            showToast('error', 'Network Error', 'Failed to save changes');
+            showToast?.('error', 'Network Error', 'Failed to save changes');
         } finally {
             setLoading(false);
         }
@@ -401,16 +409,6 @@ function ColumnEdit({ open, onClose, onSuccess, projectId, field }) {
 
     return (
         <>
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                description={toast.description}
-                show={toast.show}
-                duration={3000}
-                onClose={() => setToast(prev => ({ ...prev, show: false }))}
-                position="top-right"
-            />
-
             {open && (
                 <div className="column-edit-overlay" onClick={handleClose}>
                     <div className={`column-edit-modal ${field === 'client_id' && value && selectedClientNotes ? 'column-edit-modal-wide' : ''}`} onClick={(e) => e.stopPropagation()}>

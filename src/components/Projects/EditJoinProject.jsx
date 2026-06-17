@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { MdClose, MdEdit, MdAdd, MdCheck } from 'react-icons/md';
-import Toast from '../Toast/Toast';
 import './JoinProject.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -19,13 +18,12 @@ const DEFAULT_STEPS = [
     { key: 'Quality Assurance', label: 'Quality Assurance' },
 ];
 
-function EditJoinProject({ open, onClose, onSuccess, teamMember, project }) {
+function EditJoinProject({ open, onClose, onSuccess, teamMember, project, showToast, publishProjectEvent }) {
     const [loading, setLoading] = useState(false);
     const [values, setValues] = useState(INITIAL_STATE);
     const [selectedSteps, setSelectedSteps] = useState([]);
     const [customSteps, setCustomSteps] = useState([]);
     const [newStepInput, setNewStepInput] = useState('');
-    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
     const newStepInputRef = useRef(null);
 
     // Initialize form when modal opens
@@ -70,9 +68,6 @@ function EditJoinProject({ open, onClose, onSuccess, teamMember, project }) {
         }
     }, [open, teamMember, project]);
 
-    const showToast = (type, message, description = '') => {
-        setToast({ show: true, type, message, description });
-    };
 
     const handleStepChange = (stepKey, checked) => {
         setSelectedSteps(prev =>
@@ -143,15 +138,16 @@ function EditJoinProject({ open, onClose, onSuccess, teamMember, project }) {
             const data = await response.json();
 
             if (data.status) {
-                onSuccess?.();
+                onSuccess?.(data.data || data.project || project);
                 onClose();
-                showToast('success', 'Tasks Updated', data.message || 'Tasks updated successfully');
+                showToast?.('success', 'Tasks Updated', data.message || 'Tasks updated successfully');
+                publishProjectEvent?.('edit-join', project, project?.name);
             } else {
-                showToast('error', 'Update Failed', data.message || 'Something went wrong');
+                showToast?.('error', 'Update Failed', data.message || 'Something went wrong');
             }
         } catch (error) {
             console.error('Error updating tasks:', error);
-            showToast('error', 'Network Error', 'Failed to connect to server');
+            showToast?.('error', 'Network Error', 'Failed to connect to server');
         } finally {
             setLoading(false);
         }
@@ -165,16 +161,6 @@ function EditJoinProject({ open, onClose, onSuccess, teamMember, project }) {
 
     return (
         <>
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                description={toast.description}
-                show={toast.show}
-                duration={4000}
-                onClose={() => setToast(prev => ({ ...prev, show: false }))}
-                position="top-right"
-            />
-
             {open && (
                 <div className="join-project-overlay" onClick={handleClose}>
                     <div className="join-project-modal" onClick={(e) => e.stopPropagation()}>

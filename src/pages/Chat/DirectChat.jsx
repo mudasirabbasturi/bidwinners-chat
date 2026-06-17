@@ -13,6 +13,11 @@ import {
     MdFilePresent,
     MdMessage,
     MdDoneAll,
+    MdDownload,
+    MdMic,
+    MdStop,
+    MdGraphicEq,
+    MdZoomIn,
 } from 'react-icons/md';
 
 import './DirectChat.css';
@@ -54,10 +59,53 @@ function DirectChat({ partnerId, partnerName }) {
     const [replyTo, setReplyTo] = useState(null);
     const [loading, setLoading] = useState(false);
     const [partnerNameState, setPartnerNameState] = useState(partnerName || '');
+    const [isDragging, setIsDragging] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingSeconds, setRecordingSeconds] = useState(0);
 
     const fileInputRef = useRef(null);
     const scrollRef = useRef(null);
+    const dragCounter = useRef(0);
+    const inputRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const recordingTimerRef = useRef(null);
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+    /* ─── Drag and Drop Handlers ────────────────────────────────── */
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current++;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current--;
+        if (dragCounter.current === 0) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        dragCounter.current = 0;
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setSelectedFile(e.dataTransfer.files[0]);
+        }
+    };
 
     /* ─── Fetch partner name if not provided ────────────────────── */
     useEffect(() => {
@@ -92,7 +140,7 @@ function DirectChat({ partnerId, partnerName }) {
         if (!partnerId || !ablyClient) return;
 
         // Symmetric channel: sort the two IDs so both sides land on the same channel
-        const channelId = [currentUser.id, partnerId].sort().join('-');
+        const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
         const channelName = `direct-chat-${channelId}`;
         const channel = ablyClient.channels.get(channelName);
 
@@ -176,8 +224,45 @@ function DirectChat({ partnerId, partnerName }) {
         const ext = name.split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image';
         if (ext === 'pdf') return 'pdf';
+        if (['webm', 'ogg', 'mp3', 'wav', 'm4a', 'aac'].includes(ext)) return 'audio';
         return 'other';
     };
+
+    /* ─── Audio Recording ───────────────────────────────────────── */
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg' });
+            audioChunksRef.current = [];
+            recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+            recorder.onstop = () => {
+                const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+                const ext = recorder.mimeType.includes('webm') ? 'webm' : 'ogg';
+                const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: recorder.mimeType });
+                setSelectedFile(file);
+                stream.getTracks().forEach(t => t.stop());
+                setIsRecording(false);
+                clearInterval(recordingTimerRef.current);
+                setRecordingSeconds(0);
+            };
+            mediaRecorderRef.current = recorder;
+            recorder.start();
+            setIsRecording(true);
+            setRecordingSeconds(0);
+            recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+        } catch (err) {
+            console.error('Microphone error:', err);
+            alert('Microphone permission denied or not available.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+    };
+
+    const formatRecordingTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
     const getFileUrl = (file) => {
         if (!file) return '';
@@ -194,24 +279,32 @@ function DirectChat({ partnerId, partnerName }) {
         const path = file.url || `uploads/media/direct_chat/${file.name}`;
         return `${API_BASE_URL}/${path}`;
     };
-    /* ─── File rendering ─────────────────────────────────────────── */
+    /* ─── File rendering ─────────────────────────────────────── */
     const renderFileBubble = (file, isSelf) => {
         const type = getFileType(file.name);
         const url = getFileUrl(file);
 
         if (type === 'image') {
             return (
-                <div className="dc-file-image-wrapper" onClick={() => window.open(url, '_blank')}>
+                <div className="dc-file-image-wrapper" onClick={() => setLightboxUrl(url)}>
                     <img src={url} alt={file.name} className="dc-file-image-preview"
                         onError={e => { e.target.style.display = 'none'; }} />
-                    <div className="dc-file-image-overlay"><MdOpenInNew size={18} /></div>
+                    <div className="dc-file-image-overlay"><MdZoomIn size={20} /></div>
+                </div>
+            );
+        }
+
+        if (type === 'audio') {
+            return (
+                <div className="dc-audio-player-wrapper">
+                    <div className="dc-audio-icon"><MdGraphicEq size={20} /></div>
+                    <audio controls className="dc-audio-player" src={url} />
                 </div>
             );
         }
 
         return (
-            <div className={`dc-file-doc-item ${isSelf ? 'self' : ''}`}
-                onClick={() => window.open(url, '_blank')}>
+            <div className={`dc-file-doc-item ${isSelf ? 'self' : ''}`}>
                 <div className="dc-file-doc-icon">
                     {type === 'pdf'
                         ? <MdPictureAsPdf size={26} className="dc-file-icon-pdf" />
@@ -223,7 +316,14 @@ function DirectChat({ partnerId, partnerName }) {
                         {type === 'pdf' ? 'PDF Document' : 'File Attachment'}
                     </span>
                 </div>
-                <MdOpenInNew size={14} className="dc-file-doc-open" />
+                <div className="dc-file-doc-actions">
+                    <button className="dc-file-action-btn" title="Open in tab" onClick={() => window.open(url, '_blank')}>
+                        <MdOpenInNew size={14} />
+                    </button>
+                    <a className="dc-file-action-btn" title="Download" href={url} download={file.name}>
+                        <MdDownload size={14} />
+                    </a>
+                </div>
             </div>
         );
     };
@@ -277,7 +377,7 @@ function DirectChat({ partnerId, partnerName }) {
 
                 // Publish to Ably
                 if (ablyClient) {
-                    const channelId = [currentUser.id, partnerId].sort().join('-');
+                    const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
                     const channel = ablyClient.channels.get(`direct-chat-${channelId}`);
                     channel.publish('direct-chat-event', { action: 'message', data: data.message });
                 }
@@ -303,7 +403,7 @@ function DirectChat({ partnerId, partnerName }) {
                 setMessages(prev => prev.filter(m => m.id !== msgId));
 
                 if (ablyClient) {
-                    const channelId = [currentUser.id, partnerId].sort().join('-');
+                    const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
                     const channel = ablyClient.channels.get(`direct-chat-${channelId}`);
                     channel.publish('direct-chat-event', { action: 'delete', data: { id: msgId } });
                 }
@@ -320,6 +420,9 @@ function DirectChat({ partnerId, partnerName }) {
             userName: msg.user_name || 'Unknown',
             content: msg.content || msg.message || (msg.file ? `📎 ${msg.file.name}` : ''),
         });
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 50);
     };
 
     /* ─── File picker ────────────────────────────────────────────── */
@@ -344,7 +447,38 @@ function DirectChat({ partnerId, partnerName }) {
     }
 
     return (
-        <div className="dc-chat-inner">
+        <div 
+            className="dc-chat-inner"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* ── Image Lightbox ── */}
+            {lightboxUrl && (
+                <div className="dc-lightbox-overlay" onClick={() => setLightboxUrl(null)}>
+                    <div className="dc-lightbox-inner" onClick={e => e.stopPropagation()}>
+                        <img src={lightboxUrl} alt="preview" className="dc-lightbox-img" />
+                        <div className="dc-lightbox-actions">
+                            <a href={lightboxUrl} download className="dc-lightbox-btn">
+                                <MdDownload size={20} /> Download
+                            </a>
+                            <button className="dc-lightbox-btn close" onClick={() => setLightboxUrl(null)}>
+                                <MdClose size={20} /> Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isDragging && (
+                <div className="dc-drag-drop-overlay">
+                    <div className="dc-drag-drop-content">
+                        <MdAttachFile size={48} className="dc-drag-drop-icon" />
+                        <p>Drop file here to upload</p>
+                    </div>
+                </div>
+            )}
             {/* ── Header ── */}
             <div className="dc-chat-header">
                 <div
@@ -557,27 +691,48 @@ function DirectChat({ partnerId, partnerName }) {
             {/* ── Input ── */}
             <form className="dc-input-area" onSubmit={handleSend}>
                 <div className="dc-input-wrapper">
-                    <button
-                        type="button"
-                        className="dc-input-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                        title="Attach file"
-                    >
-                        <MdAttachFile size={20} />
-                    </button>
+                    {!isRecording && (
+                        <button
+                            type="button"
+                            className="dc-input-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Attach file"
+                        >
+                            <MdAttachFile size={20} />
+                        </button>
+                    )}
                     <input
                         type="file"
                         ref={fileInputRef}
                         style={{ display: 'none' }}
                         onChange={handleFileChange}
                     />
-                    <input
-                        type="text"
-                        className="dc-text-input"
-                        placeholder={`Message ${partnerNameState}…`}
-                        value={inputText}
-                        onChange={e => setInputText(e.target.value)}
-                    />
+
+                    {isRecording ? (
+                        <div className="dc-recording-indicator">
+                            <span className="dc-recording-dot" />
+                            <span className="dc-recording-time">{formatRecordingTime(recordingSeconds)}</span>
+                            <span className="dc-recording-label">Recording…</span>
+                        </div>
+                    ) : (
+                        <input
+                            type="text"
+                            ref={inputRef}
+                            className="dc-text-input"
+                            placeholder={`Message ${partnerNameState}…`}
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                        />
+                    )}
+
+                    <button
+                        type="button"
+                        className={`dc-input-btn dc-mic-btn${isRecording ? ' recording' : ''}`}
+                        onClick={isRecording ? stopRecording : startRecording}
+                        title={isRecording ? 'Stop recording' : 'Record voice message'}
+                    >
+                        {isRecording ? <MdStop size={20} /> : <MdMic size={20} />}
+                    </button>
                 </div>
                 <button
                     type="submit"

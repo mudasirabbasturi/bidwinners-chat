@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef, memo, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useRef, memo, useMemo, lazy, Suspense } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import SimpleBar from 'simplebar-react';
@@ -19,16 +19,11 @@ import {
 } from 'react-icons/md';
 
 import DropdownSelect from '../DropdownSelect/DropdownSelect';
-import Input from '../Input/Input';
-import Modal from '../Modal/Modal';
+import Toast from '../Toast/Toast';
+import Ably from 'ably';
+
 import './Sidebar.css';
-import AddProject from '../Projects/Add';
-import ViewProject from '../Projects/View';
-import EditProject from '../Projects/Edit';
-import ColumnEdit from '../Projects/ColumnEdit';
 import ContextMenu from '../Animation/ContextMenu';
-import JoinProject from '../Projects/JoinProject';
-import EditJoinProject from '../Projects/EditJoinProject';
 import { getUserPermissions } from '../../utils/permissions';
 
 import {
@@ -36,6 +31,29 @@ import {
     MdTimer, MdDescription, MdLocationOn, MdBuild, MdFormatListNumbered,
     MdLayers, MdLink, MdNote, MdWarning, MdFlag, MdDateRange
 } from 'react-icons/md';
+
+// Lazy load modal components
+const AddProject = lazy(() => import('../Projects/Add'));
+const ViewProject = lazy(() => import('../Projects/View'));
+const EditProject = lazy(() => import('../Projects/Edit'));
+const ColumnEdit = lazy(() => import('../Projects/ColumnEdit'));
+const JoinProject = lazy(() => import('../Projects/JoinProject'));
+const EditJoinProject = lazy(() => import('../Projects/EditJoinProject'));
+
+const ablyApiKey = import.meta.env.VITE_ABLY_API_KEY;
+const ablyClient = ablyApiKey
+    ? new Ably.Realtime({
+        key: ablyApiKey,
+        clientId: String(JSON.parse(localStorage.getItem('user') || '{}').id || 'anonymous'),
+    })
+    : null;
+
+// Loading fallback for modals
+const ModalFallback = () => (
+    <div className="modal-fallback">
+        <div className="modal-fallback-spinner"></div>
+    </div>
+);
 
 // Constants
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -274,13 +292,12 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
             }
         ];
 
-        // Filter items based on permissions
         return allItems.filter(item => {
-            if (item.readOnly) return true; // Always show read-only items
+            if (item.readOnly) return true;
             if (item.viewPermission) {
                 return can(item.viewPermission);
             }
-            return true; // Show items without permission requirement
+            return true;
         });
     }, [project, onColumnEdit, can]);
 
@@ -296,11 +313,53 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
                     <h4 className="project-title" title={project.name}>
                         {project.name}
                     </h4>
-                    <span className={`project-status ${statusInfo.class}`}>
-                        <span className="status-dot-indicator"></span>
-                        {statusInfo.label}
-                    </span>
+
+                    {/* Status Row */}
+                    <div className="project-status-row">
+                        <span className={`project-status ${statusInfo.class}`}>
+                            <span className="status-dot-indicator"></span>
+                            {statusInfo.label}
+                        </span>
+                    </div>
+
+                    {/* Pricing Row */}
+                    <div className="project-pricing-row">
+                        <span className="pricing-label">Pricing:</span>
+                        {(() => {
+                            const pricingValue = project.project_pricing || 'No';
+                            let pricingClass = 'no';
+                            if (pricingValue.toLowerCase() === 'yes') pricingClass = 'yes';
+                            else if (pricingValue.toUpperCase() === 'N/A') pricingClass = 'na';
+
+                            return (
+                                <span className={`project-pricing-badge ${pricingClass}`}>
+                                    {pricingValue}
+                                </span>
+                            );
+                        })()}
+                    </div>
+
+                    {/* Due Date Row */}
+                    <div className="project-due-date-row">
+                        <span className="due-date-label">Due:</span>
+                        {(() => {
+                            const isOverdue = project.project_due_date && new Date(project.project_due_date) < new Date();
+                            const dueDateClass = !project.project_due_date
+                                ? 'no-due-date'
+                                : isOverdue
+                                    ? 'overdue'
+                                    : '';
+
+                            return (
+                                <span className={`project-due-date ${dueDateClass}`}>
+                                    <span className="due-date-separator">•</span>
+                                    {project.project_due_date || 'No due date'}
+                                </span>
+                            );
+                        })()}
+                    </div>
                 </div>
+
                 <div className="project-actions">
                     <a
                         href={`/project-chat/${project.id}`}
@@ -425,6 +484,28 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
 
 ProjectCard.displayName = 'ProjectCard';
 
+// Premium dual-tone chime using Web Audio API
+const playNotificationSound = () => {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = ctx.currentTime;
+        const notes = [659.25, 830.61]; // E5 and G#5
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freq, now + i * 0.08);
+            gain.gain.setValueAtTime(0, now + i * 0.08);
+            gain.gain.linearRampToValueAtTime(0.18, now + i * 0.08 + 0.03);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.6);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.65);
+        });
+    } catch (_) { /* silence errors in unsupported environments */ }
+};
+
 const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -444,7 +525,38 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         return permissions.some(p => p.name === permName);
     }, [permissions]);
 
-    const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
+    // ── Centralized Toast State ──
+    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
+    const showToast = useCallback((type, message, description = '') => {
+        setToast({ show: true, type, message, description });
+    }, []);
+
+    // ── Ably: publish a project-level event to all clients ──
+    const publishProjectEvent = useCallback((action, project, projectName) => {
+        if (!ablyClient) return;
+        try {
+            const channel = ablyClient.channels.get('project-updates');
+            const userStr = localStorage.getItem('user');
+            const currentUser = userStr ? JSON.parse(userStr) : null;
+            // Normalize project so it always has a `name` field
+            const normalizedProject = project
+                ? { ...project, name: project.name || project.project_title || projectName || 'Unknown Project' }
+                : null;
+            channel.publish('project-event', {
+                action,
+                projectId: project?.id,
+                projectName: projectName || project?.name || project?.project_title || 'Unknown Project',
+                projectData: normalizedProject,   // full project object for silent updates
+                actorName: currentUser?.name || 'Someone',
+                actorId: currentUser?.id,
+                timestamp: Date.now(),
+            });
+        } catch (e) {
+            console.error('Ably publish error:', e);
+        }
+    }, []);
+
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth <= 1024);
     const [statusFilter, setStatusFilter] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -460,6 +572,42 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const [allProjects, setAllProjects] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+
+    const fetchProjects = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
+        if (!silent) setError(null);
+ 
+        try {
+            const url = `${API_BASE_URL}/api/chat-project-list`;
+            const token = localStorage.getItem('token');
+            const response = await fetch(url, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Authorization': `Bearer ${token}`,
+                }
+            });
+ 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+ 
+            const data = await response.json();
+ 
+            if (data?.projects?.data) {
+                setAllProjects(data.projects.data);
+                onProjectsLoaded?.(data.projects.data);
+            } else if (Array.isArray(data?.projects)) {
+                setAllProjects(data.projects);
+                onProjectsLoaded?.(data.projects);
+            }
+        } catch (err) {
+            console.error('Error fetching projects:', err);
+            if (!silent) setError(err.message);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }, [onProjectsLoaded]);
 
     const projects = useMemo(() => {
         return allProjects.filter(p => {
@@ -516,23 +664,39 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             const data = await response.json();
 
             if (data.status) {
-                fetchProjects();
+                // Optimistically remove the leaving member from local state
+                const updatedProject = {
+                    ...project,
+                    team_members: (project.team_members || []).filter(m => m.id !== teamMember.id),
+                };
+                setAllProjects(prev =>
+                    prev.map(p => p.id === project.id ? updatedProject : p)
+                );
+                showToast('success', 'Left Project', `You have left "${project.name || 'the project'}"`);
+                publishProjectEvent('leave-project', updatedProject, project.name);
             } else {
-                alert(data.message || 'Failed to leave project');
+                showToast('error', 'Failed to Leave', data.message || 'Failed to leave project');
             }
         } catch (error) {
             console.error('Error leaving project:', error);
-            alert('Network error while trying to leave project');
+            showToast('error', 'Network Error', 'Failed to connect to server');
         }
     };
 
     const handleJoinSuccess = (updatedProject) => {
         if (updatedProject) {
+            const normalized = {
+                ...updatedProject,
+                name: updatedProject.name || updatedProject.project_title || 'Untitled Project',
+                team_members: updatedProject.team_members || [],
+            };
             setAllProjects(prev =>
-                prev.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p)
+                prev.map(p => p.id === normalized.id ? { ...p, ...normalized } : p)
             );
+        } else {
+            // Fallback: silent fetch if no project data returned
+            fetchProjects(true);
         }
-        fetchProjects();
     };
 
     const handleColumnEdit = useCallback((project, field) => {
@@ -542,9 +706,15 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         setColumnEditOpen(true);
     }, []);
 
-    const handleColumnEditSuccess = useCallback(() => {
-        fetchProjects();
-    }, []);
+    const handleColumnEditSuccess = useCallback((updateInfo) => {
+        if (updateInfo && updateInfo.projectId) {
+            setAllProjects(prev =>
+                prev.map(p => p.id === updateInfo.projectId ? { ...p, [updateInfo.field]: updateInfo.value } : p)
+            );
+        } else {
+            fetchProjects(true);
+        }
+    }, [fetchProjects]);
 
     // Form states
     const [editTitle, setEditTitle] = useState('');
@@ -575,45 +745,97 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const fetchProjects = useCallback(async () => {
-        setLoading(true);
-        setError(null);
 
-        try {
-            const url = `${API_BASE_URL}/api/chat-project-list`;
-            const token = localStorage.getItem('token');
-            const response = await fetch(url, {
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Authorization': `Bearer ${token}`,
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-
-            if (data?.projects?.data) {
-                setAllProjects(data.projects.data);
-                onProjectsLoaded?.(data.projects.data);
-            } else if (Array.isArray(data?.projects)) {
-                setAllProjects(data.projects);
-                onProjectsLoaded?.(data.projects);
-            }
-        } catch (err) {
-            console.error('Error fetching projects:', err);
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
 
     useEffect(() => {
         fetchProjects();
     }, [fetchProjects]);
+
+    // ── Ably: subscribe to real-time project updates from other users ──
+    useEffect(() => {
+        if (!ablyClient) return;
+        const channel = ablyClient.channels.get('project-updates');
+        const userStr = localStorage.getItem('user');
+        const currentUserId = userStr ? JSON.parse(userStr)?.id : null;
+
+        const handleProjectEvent = (msg) => {
+            const { action, actorId, actorName, projectName, projectData, projectId } = msg.data || {};
+            // Only react to events from other users
+            if (String(actorId) === String(currentUserId)) return;
+
+            playNotificationSound();
+
+            // Apply silent state updates — same behaviour as the local user's optimistic update
+            if (action === 'add-project' && projectData) {
+                // Normalize and prepend the new project — no skeleton, no full reload
+                const normalized = {
+                    ...projectData,
+                    name: projectData.name || projectData.project_title || projectName || 'Untitled Project',
+                    team_members: projectData.team_members || [],
+                };
+                setAllProjects(prev => {
+                    // Avoid duplicates (e.g. if the event fires twice)
+                    if (prev.some(p => p.id === normalized.id)) return prev;
+                    return [normalized, ...prev];
+                });
+            } else if (
+                (action === 'edit-project' || action === 'join-project' || action === 'edit-join') &&
+                projectData && projectId
+            ) {
+                setAllProjects(prev => {
+                    const exists = prev.some(p => p.id === projectId);
+                    if (!exists) {
+                        // Newly visible project (e.g. joined) — append it
+                        const normalized = {
+                            ...projectData,
+                            name: projectData.name || projectData.project_title || projectName || 'Untitled Project',
+                            team_members: projectData.team_members || [],
+                        };
+                        return [...prev, normalized];
+                    }
+                    return prev.map(p =>
+                        p.id === projectId
+                            ? { ...p, ...projectData, name: projectData.name || projectData.project_title || p.name }
+                            : p
+                    );
+                });
+            } else if (action === 'leave-project' && projectId) {
+                // Remove the leaving member from team_members silently
+                setAllProjects(prev =>
+                    prev.map(p =>
+                        p.id === projectId
+                            ? { ...p, ...( projectData || {} ), name: (projectData?.name || projectData?.project_title) || p.name }
+                            : p
+                    )
+                );
+            } else if (action === 'column-edit' && projectData && projectId) {
+                setAllProjects(prev =>
+                    prev.map(p =>
+                        p.id === projectId ? { ...p, ...projectData } : p
+                    )
+                );
+            } else {
+                // Fallback: silent fetch (no skeleton)
+                fetchProjects(true);
+            }
+
+            const actionLabels = {
+                'add-project': `${actorName} added project "${projectName}"`,
+                'edit-project': `${actorName} updated project "${projectName}"`,
+                'column-edit': `${actorName} edited a field in "${projectName}"`,
+                'join-project': `${actorName} joined project "${projectName}"`,
+                'edit-join': `${actorName} updated tasks in "${projectName}"`,
+                'leave-project': `${actorName} left project "${projectName}"`,
+            };
+            const toastMsg = actionLabels[action] || `${actorName} made changes to "${projectName}"`;
+            showToast('info', 'Project Update', toastMsg);
+        };
+
+        channel.subscribe('project-event', handleProjectEvent);
+        return () => {
+            channel.unsubscribe('project-event', handleProjectEvent);
+        };
+    }, [fetchProjects, showToast]);
 
     // Fetch direct users when direct tab is active
     useEffect(() => {
@@ -622,16 +844,16 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         }
     }, [activeLink]);
 
-    const handleSearchChange = (e) => {
+    const handleSearchChange = useCallback((e) => {
         setSearchTerm(e.target.value);
-    };
+    }, []);
 
-    const navLinks = [
+    const navLinks = useMemo(() => [
         { id: 'project', label: 'Projects Chat', href: '/project-chat' },
         { id: 'direct', label: 'Direct Chat', href: '/direct-chat' }
-    ];
+    ], []);
 
-    const statusOptions = [
+    const statusOptions = useMemo(() => [
         { value: 'All', label: 'All Projects', icon: <MdCircle size={6} />, statusClass: 'status-all' },
         { value: 'Pending', label: 'Pending', icon: <MdCircle size={6} />, statusClass: 'status-pending' },
         { value: 'Takeoff On Progress', label: 'Takeoff In Progress', icon: <MdCircle size={6} />, statusClass: 'status-takeoff' },
@@ -641,7 +863,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         { value: 'Hold', label: 'Hold', icon: <MdCircle size={6} />, statusClass: 'status-hold' },
         { value: 'Deliver', label: 'Deliver', icon: <MdCircle size={6} />, statusClass: 'status-deliver' },
         { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
-    ];
+    ], []);
 
     // Direct chat users from API
     const [directUsers, setDirectUsers] = useState([]);
@@ -666,53 +888,72 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         }
     }, []);
 
-    const handleNavClick = (id) => {
+    const handleNavClick = useCallback((id) => {
         if (id === 'direct') {
             navigate('/direct-chat');
         } else {
             navigate('/project-chat');
         }
-    };
+    }, [navigate]);
 
-    const handleDirectUserClick = (user) => {
+    const handleDirectUserClick = useCallback((user) => {
         navigate(`/direct-chat/${user.id}`);
-    };
+    }, [navigate]);
 
-    const getInitials = (name) => {
+    const getInitials = useCallback((name) => {
         if (!name) return '?';
         return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-    };
+    }, []);
 
-    // Deterministic pastel color from name
-    const getUserColor = (name) => {
+    const getUserColor = useCallback((name) => {
         const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#ef4444', '#14b8a6'];
         if (!name) return colors[0];
         const idx = name.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % colors.length;
         return colors[idx];
-    };
+    }, []);
 
-    const handleChatClick = (e, project) => {
+    const handleChatClick = useCallback((e, project) => {
         e.preventDefault();
         e.stopPropagation();
         navigate(`/project-chat/${project.id}`);
-    };
+    }, [navigate]);
 
-    const handleViewProject = (project) => {
+    const handleViewProject = useCallback((project) => {
         setSelectedProject(project);
         setViewModalOpen(true);
-    };
+    }, []);
 
-    const handleEditProject = (project) => {
+    const handleEditProject = useCallback((project) => {
         setSelectedProject(project);
         setEditTitle(project.name);
         setEditModalOpen(true);
-    };
+    }, []);
 
-    const handleAddSuccess = () => {
-        fetchProjects();
-    };
+    const handleAddSuccess = useCallback((newProject) => {
+        if (newProject) {
+            // Normalize: the API returns project_title but the card renders project.name
+            const normalized = {
+                ...newProject,
+                name: newProject.name || newProject.project_title || 'Untitled Project',
+                team_members: newProject.team_members || [],
+            };
+            setAllProjects(prev => [normalized, ...prev]);
+        } else {
+            fetchProjects(true);
+        }
+    }, [fetchProjects]);
 
-    const getStatusInfo = (status) => {
+    const handleEditProjectSuccess = useCallback((updatedProject) => {
+        if (updatedProject) {
+            setAllProjects(prev =>
+                prev.map(p => p.id === updatedProject.id ? { ...p, ...updatedProject } : p)
+            );
+        } else {
+            fetchProjects(true);
+        }
+    }, [fetchProjects]);
+
+    const getStatusInfo = useCallback((status) => {
         switch (status) {
             case 'Takeoff On Progress': return { label: 'Takeoff In Progress', class: 'status-takeoff' };
             case 'Pricing In Progress': return { label: 'Pricing In Progress', class: 'status-pricing' };
@@ -724,9 +965,9 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             case 'Cancelled': return { label: 'Cancelled', class: 'status-cancelled' };
             default: return { label: status, class: '' };
         }
-    };
+    }, []);
 
-    const getMemberAvatars = (teamMembers) => {
+    const getMemberAvatars = useCallback((teamMembers) => {
         if (!teamMembers || teamMembers.length === 0) return [];
         const uniqueUsers = new Map();
         teamMembers.forEach(member => {
@@ -738,15 +979,23 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             }
         });
         return Array.from(uniqueUsers.values()).slice(0, 4);
-    };
+    }, []);
 
-    const getUniqueMemberCount = (teamMembers) => {
+    const getUniqueMemberCount = useCallback((teamMembers) => {
         if (!teamMembers || teamMembers.length === 0) return 0;
         const uniqueUsers = new Set(teamMembers.map(member => member.user_id));
         return uniqueUsers.size;
-    };
+    }, []);
 
-    const renderContent = () => {
+    // Memoized filtered direct users
+    const filteredDirectUsers = useMemo(() => {
+        if (!searchTerm) return directUsers;
+        return directUsers.filter(u =>
+            u.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [directUsers, searchTerm]);
+
+    const renderContent = useCallback(() => {
         switch (activeLink) {
             case 'project':
                 return (
@@ -874,45 +1123,65 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                     </div>
                                 ))}
                             </div>
-                        ) : directUsers.length === 0 ? (
+                        ) : filteredDirectUsers.length === 0 ? (
                             <div className="no-projects" style={{ padding: '40px 20px' }}>
                                 <MdPersonAdd size={36} />
                                 <p>No users found</p>
                             </div>
                         ) : (
-                            directUsers
-                                .filter(u =>
-                                    !searchTerm ||
-                                    u.name.toLowerCase().includes(searchTerm.toLowerCase())
-                                )
-                                .map(user => (
+                            filteredDirectUsers.map(user => (
+                                <div
+                                    key={user.id}
+                                    className={`content-item dc-user-row ${Number(user.id) === Number(partnerId) ? 'active' : ''}`}
+                                    onClick={() => handleDirectUserClick(user)}
+                                    style={{ cursor: 'pointer' }}
+                                >
                                     <div
-                                        key={user.id}
-                                        className={`content-item dc-user-row ${Number(user.id) === Number(partnerId) ? 'active' : ''}`}
-                                        onClick={() => handleDirectUserClick(user)}
-                                        style={{ cursor: 'pointer' }}
+                                        className="content-item-avatar"
+                                        style={{ background: getUserColor(user.name) }}
                                     >
-                                        <div
-                                            className="content-item-avatar"
-                                            style={{ background: getUserColor(user.name) }}
-                                        >
-                                            <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>
-                                                {getInitials(user.name)}
-                                            </span>
-                                        </div>
-                                        <div className="content-item-info">
-                                            <span className="content-item-name">{user.name}</span>
-                                            <span className="content-item-meta">Click to chat</span>
-                                        </div>
+                                        <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>
+                                            {getInitials(user.name)}
+                                        </span>
                                     </div>
-                                ))
+                                    <div className="content-item-info">
+                                        <span className="content-item-name">{user.name}</span>
+                                        <span className="content-item-meta">Click to chat</span>
+                                    </div>
+                                </div>
+                            ))
                         )}
                     </div>
                 );
             default:
                 return null;
         }
-    };
+    }, [
+        activeLink,
+        statusOptions,
+        statusFilter,
+        can,
+        error,
+        loading,
+        projects,
+        totalProjects,
+        activeProjectId,
+        handleChatClick,
+        handleViewProject,
+        handleEditProject,
+        handleColumnEdit,
+        getStatusInfo,
+        getMemberAvatars,
+        getUniqueMemberCount,
+        fetchProjects,
+        virtualizer,
+        directUsersLoading,
+        filteredDirectUsers,
+        partnerId,
+        handleDirectUserClick,
+        getUserColor,
+        getInitials,
+    ]);
 
     return (
         <>
@@ -934,7 +1203,12 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                 <div className="sidebar-header">
                     <div className="sidebar-header-top">
                         <div className="sidebar-brand">
-                            <img src="/bidwinners_chat_logo.png" alt="Bidwinners Chat" className="sidebar-logo" />
+                            <a href="/" onClick={(e) => {
+                                e.preventDefault();
+                                navigate('/');
+                            }}>
+                                <img src="/bidwinners_chat_logo.png" alt="Bidwinners Chat" className="sidebar-logo" />
+                            </a>
                         </div>
                         <div className="sidebar-user">
                             <div className="user-avatar">
@@ -989,51 +1263,82 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                 </SimpleBar>
             </aside>
 
-            {/* Add Project Modal */}
-            <AddProject
-                open={addModalOpen}
-                onClose={() => setAddModalOpen(false)}
-                onSuccess={handleAddSuccess}
+            {/* Centralized Toast – lives outside modals so it persists after modal unmounts */}
+            <Toast
+                type={toast.type}
+                message={toast.message}
+                description={toast.description}
+                show={toast.show}
+                duration={4000}
+                onClose={() => setToast(prev => ({ ...prev, show: false }))}
+                position="top-right"
             />
-            {/* View Project Modal */}
-            <ViewProject
-                open={viewModalOpen}
-                onClose={() => setViewModalOpen(false)}
-                projectId={selectedProject?.id}
-            />
-            {/* Edit Project Modal */}
-            <EditProject
-                open={editModalOpen}
-                onClose={() => setEditModalOpen(false)}
-                onSuccess={() => fetchProjects()}
-                projectId={selectedProject?.id}
-            />
-            {/* Column Edit Modal */}
-            <ColumnEdit
-                open={columnEditOpen}
-                onClose={() => setColumnEditOpen(false)}
-                onSuccess={handleColumnEditSuccess}
-                projectId={columnEditProjectId}
-                field={columnEditField}
-            />
-            {/* Join Project Modal */}
-            <JoinProject
-                open={joinModalOpen}
-                onClose={() => { setJoinProjectData(null); setJoinModalOpen(false); }}
-                onSuccess={handleJoinSuccess}
-                project={joinProjectData}
-            />
-            {/* Edit Join Project Modal */}
-            <EditJoinProject
-                open={!!editJoinProjectData}
-                onClose={() => {
-                    setEditJoinProjectData(null);
-                    setTeamMemberToEdit(null);
-                }}
-                onSuccess={() => fetchProjects()}
-                teamMember={teamMemberToEdit}
-                project={editJoinProjectData}
-            />
+
+            {/* Lazy Loaded Modals with Suspense */}
+            <Suspense fallback={<ModalFallback />}>
+                {addModalOpen && (
+                    <AddProject
+                        open={addModalOpen}
+                        onClose={() => setAddModalOpen(false)}
+                        onSuccess={handleAddSuccess}
+                        showToast={showToast}
+                        publishProjectEvent={publishProjectEvent}
+                    />
+                )}
+                {viewModalOpen && (
+                    <ViewProject
+                        open={viewModalOpen}
+                        onClose={() => setViewModalOpen(false)}
+                        projectId={selectedProject?.id}
+                    />
+                )}
+                {editModalOpen && (
+                    <EditProject
+                        open={editModalOpen}
+                        onClose={() => setEditModalOpen(false)}
+                        onSuccess={handleEditProjectSuccess}
+                        projectId={selectedProject?.id}
+                        showToast={showToast}
+                        publishProjectEvent={publishProjectEvent}
+                    />
+                )}
+                {columnEditOpen && (
+                    <ColumnEdit
+                        open={columnEditOpen}
+                        onClose={() => setColumnEditOpen(false)}
+                        onSuccess={handleColumnEditSuccess}
+                        projectId={columnEditProjectId}
+                        field={columnEditField}
+                        showToast={showToast}
+                        publishProjectEvent={publishProjectEvent}
+                        selectedProject={selectedProject}
+                    />
+                )}
+                {joinModalOpen && (
+                    <JoinProject
+                        open={joinModalOpen}
+                        onClose={() => { setJoinProjectData(null); setJoinModalOpen(false); }}
+                        onSuccess={handleJoinSuccess}
+                        project={joinProjectData}
+                        showToast={showToast}
+                        publishProjectEvent={publishProjectEvent}
+                    />
+                )}
+                {editJoinProjectData && (
+                    <EditJoinProject
+                        open={!!editJoinProjectData}
+                        onClose={() => {
+                            setEditJoinProjectData(null);
+                            setTeamMemberToEdit(null);
+                        }}
+                        onSuccess={handleJoinSuccess}
+                        teamMember={teamMemberToEdit}
+                        project={editJoinProjectData}
+                        showToast={showToast}
+                        publishProjectEvent={publishProjectEvent}
+                    />
+                )}
+            </Suspense>
         </>
     );
 };

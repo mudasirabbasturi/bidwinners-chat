@@ -620,3 +620,198 @@
     flex-shrink: 0;
     opacity: .6;
 }
+
+/* Drag and Drop Overlay Styles */
+.dc-drag-drop-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none; /* Crucial so it doesn't interfere with drag events */
+    backdrop-filter: blur(4px);
+    transition: all 0.2s ease;
+}
+
+.dc-drag-drop-content {
+    border: 3px dashed var(--primary-color, #4f46e5);
+    border-radius: 16px;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    background: white;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    animation: dcScaleIn 0.2s ease-out;
+}
+
+.dc-drag-drop-icon {
+    color: var(--primary-color, #4f46e5);
+    animation: dcBounce 1.5s infinite;
+}
+
+.dc-drag-drop-content p {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary, #111827);
+    margin: 0;
+}
+
+@keyframes dcScaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes dcBounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
+/* Lightbox overlay styles */
+.dc-lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.dc-lightbox-inner {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+.dc-lightbox-img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+.dc-lightbox-actions {
+    display: flex;
+    gap: 12px;
+}
+.dc-lightbox-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    background: rgba(255,255,255,.15);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.3);
+    cursor: pointer;
+    font-size: 14px;
+    text-decoration: none;
+}
+.dc-lightbox-btn.close {
+    background: rgba(239,68,68,.25);
+    border-color: rgba(239,68,68,.5);
+}
+
+/* File Actions */
+.dc-file-doc-actions {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+}
+.dc-file-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(99,102,241,.1);
+    border: none;
+    cursor: pointer;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+.dc-message-row.self .dc-file-action-btn {
+    background: rgba(255,255,255,.15);
+    color: white;
+}
+
+/* Audio Player */
+.dc-audio-player-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 0;
+}
+.dc-audio-icon {
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+}
+.dc-message-row.self .dc-audio-icon {
+    color: white;
+}
+.dc-audio-player {
+    height: 36px;
+    min-width: 200px;
+    max-width: 280px;
+    border-radius: 20px;
+}
+
+/* Recording Mic Button & Indicator */
+.dc-mic-btn.recording {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    animation: dc-pulse-rec 1.2s ease-in-out infinite;
+}
+@keyframes dc-pulse-rec {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+    }
+}
+.dc-recording-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    padding: 0 12px;
+}
+.dc-recording-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: dc-pulse-rec 1.2s ease-in-out infinite;
+}
+.dc-recording-time {
+    font-size: 15px;
+    font-weight: 600;
+    color: #ef4444;
+    font-variant-numeric: tabular-nums;
+}
+.dc-recording-label {
+    font-size: 13px;
+    color: var(--text-secondary);
+}

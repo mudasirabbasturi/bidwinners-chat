@@ -4,6 +4,7 @@
 .sidebar {
     width: 340px;
     height: 100vh;
+    height: 100dvh;
     background: var(--bg-sidebar);
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -11,7 +12,8 @@
     position: relative;
     overflow: hidden;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 50;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
 }
 
 .sidebar.desktop {
@@ -23,9 +25,8 @@
    ========================================================================== */
 .sidebar-toggle-btn {
     position: fixed;
-    top: 16px;
-    right: 16px;
-    /* left: 16px; */
+    top: calc(16px + env(safe-area-inset-top));
+    right: calc(16px + env(safe-area-inset-right));
     width: 42px;
     height: 42px;
     border-radius: 12px;
@@ -33,22 +34,29 @@
     color: white;
     border: none;
     display: none;
-    /* Hidden by default, shown on mobile */
     align-items: center;
     justify-content: center;
     cursor: pointer;
     z-index: 1000;
     box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
     transition: var(--transition);
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.sidebar-toggle-btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+@media (hover: hover) and (pointer: fine) {
+    .sidebar-toggle-btn:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+    }
+}
+
+.sidebar-toggle-btn:active {
+    transform: scale(0.95);
+    opacity: 0.9;
 }
 
 .sidebar-toggle-btn.open {
-    /* left: 280px; */
     background: white;
     color: var(--text-primary);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
@@ -56,12 +64,16 @@
 
 .sidebar-overlay {
     position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
     inset: 0;
     background: rgba(0, 0, 0, 0.5);
-    z-index: 40;
-    /* Lower than sidebar's z-index: 50 */
+    z-index: 90;
     animation: fadeIn 0.2s ease;
     pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
 }
 
 /* ==========================================================================
@@ -99,7 +111,6 @@
     letter-spacing: -0.5px;
 }
 
-/* User Section */
 .sidebar-user {
     display: flex;
     align-items: center;
@@ -121,11 +132,14 @@
     cursor: pointer;
     border: 2px solid var(--border-color);
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.user-avatar:hover {
-    border-color: var(--primary-color);
-    transform: scale(1.05);
+@media (hover: hover) and (pointer: fine) {
+    .user-avatar:hover {
+        border-color: var(--primary-color);
+        transform: scale(1.05);
+    }
 }
 
 .logout-btn {
@@ -140,12 +154,15 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.logout-btn:hover {
-    background: #fee2e2;
-    color: #dc2626;
-    border-color: #dc2626;
+@media (hover: hover) and (pointer: fine) {
+    .logout-btn:hover {
+        background: #fee2e2;
+        color: #dc2626;
+        border-color: #dc2626;
+    }
 }
 
 /* ==========================================================================
@@ -175,10 +192,13 @@
     position: relative;
     z-index: 1;
     border-radius: 8px;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.nav-tab:hover {
-    color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+    .nav-tab:hover {
+        color: var(--text-primary);
+    }
 }
 
 .nav-tab.active {
@@ -221,11 +241,17 @@
     padding: 9px 14px 9px 38px;
     border: 1.5px solid var(--border-color);
     border-radius: 10px;
-    font-size: 13px;
+    font-size: 16px;
     color: var(--text-primary);
     background: var(--bg-dim);
     outline: none;
     transition: all 0.2s ease;
+}
+
+@media (min-width: 769px) {
+    .search-input {
+        font-size: 13px;
+    }
 }
 
 .search-input:focus {
@@ -290,11 +316,14 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.add-btn:hover {
-    background: var(--bg-dim);
-    color: var(--primary-color);
+@media (hover: hover) and (pointer: fine) {
+    .add-btn:hover {
+        background: var(--bg-dim);
+        color: var(--primary-color);
+    }
 }
 
 /* ==========================================================================
@@ -306,15 +335,17 @@
     border-radius: 12px;
     padding: 12px;
     transition: all 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.project-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    transform: translateY(-1px);
+@media (hover: hover) and (pointer: fine) {
+    .project-card:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+        transform: translateY(-1px);
+    }
 }
 
-/* Project Card - Active State */
 .project-card.active {
     border-color: var(--primary-color);
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.04), rgba(139, 92, 246, 0.04));
@@ -335,8 +366,10 @@
     border-radius: 0 3px 3px 0;
 }
 
-.project-card.active:hover {
-    box-shadow: 0 0 0 1px var(--primary-color), 0 6px 16px rgba(79, 70, 229, 0.15);
+@media (hover: hover) and (pointer: fine) {
+    .project-card.active:hover {
+        box-shadow: 0 0 0 1px var(--primary-color), 0 6px 16px rgba(79, 70, 229, 0.15);
+    }
 }
 
 .project-card.active .project-icon-wrapper {
@@ -369,9 +402,15 @@
     flex-shrink: 0;
 }
 
+/* ==========================================================================
+   PROJECT TITLE SECTION
+   ========================================================================== */
 .project-title-section {
     flex: 1;
     min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .project-title {
@@ -385,6 +424,17 @@
     line-height: 1.3;
 }
 
+/* ==========================================================================
+   PROJECT STATUS ROW
+   ========================================================================== */
+.project-status-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    min-height: 20px;
+}
+
 .project-status {
     display: inline-flex;
     align-items: center;
@@ -392,6 +442,7 @@
     font-size: 11px;
     font-weight: 500;
     letter-spacing: 0.2px;
+    flex-shrink: 0;
 }
 
 .status-dot-indicator {
@@ -473,7 +524,165 @@
     box-shadow: 0 0 6px rgba(107, 114, 128, 0.4);
 }
 
-/* Project Actions */
+/* ==========================================================================
+   PROJECT PRICING BADGE
+   ========================================================================== */
+.project-pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 12px;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+/* Pricing - YES */
+.project-pricing-badge.yes {
+    color: #059669;
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.project-pricing-badge.yes::before {
+    content: '✓ ';
+    font-weight: 700;
+}
+
+/* Pricing - NO */
+.project-pricing-badge.no {
+    color: #6b7280;
+    background: rgba(107, 114, 128, 0.08);
+    border: 1px solid rgba(107, 114, 128, 0.15);
+    opacity: 0.7;
+}
+
+.project-pricing-badge.no::before {
+    content: '✗ ';
+    font-weight: 700;
+}
+
+/* Pricing - N/A */
+.project-pricing-badge.na {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Pricing hover effects */
+@media (hover: hover) and (pointer: fine) {
+    .project-pricing-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .project-pricing-badge.yes:hover {
+        background: rgba(5, 150, 105, 0.15);
+    }
+
+    .project-pricing-badge.no:hover {
+        background: rgba(107, 114, 128, 0.12);
+        opacity: 0.9;
+    }
+
+    .project-pricing-badge.na:hover {
+        background: rgba(245, 158, 11, 0.15);
+    }
+}
+
+/* ==========================================================================
+   PROJECT DUE DATE ROW
+   ========================================================================== */
+.project-due-date-row {
+    display: flex;
+    align-items: center;
+    min-height: 18px;
+    margin-top: 2px;
+}
+
+.project-due-date {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-muted);
+    padding: 1px 6px;
+    background: var(--bg-dim);
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.due-date-separator {
+    margin-right: 4px;
+    opacity: 0.5;
+    color: var(--text-muted);
+}
+
+/* Overdue - RED */
+.project-due-date.overdue {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    opacity: 1;
+    font-weight: 500;
+}
+
+.project-due-date.overdue .due-date-separator {
+    opacity: 0.7;
+    color: #dc2626;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .project-due-date.overdue:hover {
+        background: rgba(220, 38, 38, 0.15);
+        border-color: rgba(220, 38, 38, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+.project-due-date.overdue {
+    animation: overduePulse 2s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* No due date - subtle */
+.project-due-date.no-due-date {
+    opacity: 0.5;
+    font-style: italic;
+    color: var(--text-muted);
+    background: var(--bg-dim);
+    border: 1px dashed var(--border-color);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .project-due-date:hover {
+        opacity: 1;
+        background: var(--bg-hover);
+    }
+
+    .project-due-date.no-due-date:hover {
+        opacity: 0.7;
+        background: var(--bg-hover);
+    }
+}
+
+/* ==========================================================================
+   PROJECT ACTIONS
+   ========================================================================== */
 .project-actions {
     display: flex;
     align-items: center;
@@ -494,14 +703,17 @@
     cursor: pointer;
     transition: all 0.2s ease;
     text-decoration: none;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.chat-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .chat-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
 }
 
 .more-btn {
@@ -517,11 +729,14 @@
     cursor: pointer;
     transition: all 0.2s ease;
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.more-btn:hover {
-    background: var(--bg-dim);
-    color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+    .more-btn:hover {
+        background: var(--bg-dim);
+        color: var(--text-primary);
+    }
 }
 
 /* ==========================================================================
@@ -534,7 +749,6 @@
     gap: 8px;
 }
 
-/* Member Avatars */
 .member-avatars {
     display: flex;
     align-items: center;
@@ -584,7 +798,6 @@
     white-space: nowrap;
 }
 
-/* Avatar Images */
 .avatar-img {
     width: 100%;
     height: 100%;
@@ -607,7 +820,6 @@
     font-family: "Adobe Clean Bold", sans-serif;
 }
 
-/* Footer Action Buttons */
 .footer-actions {
     display: flex;
     align-items: center;
@@ -630,13 +842,16 @@
     transition: all 0.2s ease;
     white-space: nowrap;
     flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.join-btn:hover {
-    background: var(--primary-color);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+@media (hover: hover) and (pointer: fine) {
+    .join-btn:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(79, 70, 229, 0.2);
+    }
 }
 
 .action-icon-btn {
@@ -652,18 +867,21 @@
     cursor: pointer;
     transition: all 0.2s ease;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.view-btn:hover {
-    background: rgba(79, 70, 229, 0.08);
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-}
+@media (hover: hover) and (pointer: fine) {
+    .view-btn:hover {
+        background: rgba(79, 70, 229, 0.08);
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
 
-.edit-btn:hover {
-    background: rgba(5, 150, 105, 0.08);
-    color: #059669;
-    border-color: #059669;
+    .edit-btn:hover {
+        background: rgba(5, 150, 105, 0.08);
+        color: #059669;
+        border-color: #059669;
+    }
 }
 
 /* ==========================================================================
@@ -678,13 +896,15 @@
     cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 2px;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.content-item:hover {
-    background: var(--bg-dim);
+@media (hover: hover) and (pointer: fine) {
+    .content-item:hover {
+        background: var(--bg-dim);
+    }
 }
 
-/* Direct Messages - Active State */
 .content-item.active,
 .dc-user-row.active {
     background: linear-gradient(135deg, rgba(79, 70, 229, 0.08), rgba(139, 92, 246, 0.08));
@@ -692,9 +912,12 @@
     border-radius: 8px;
 }
 
-.content-item.active:hover,
-.dc-user-row.active:hover {
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(139, 92, 246, 0.12));
+@media (hover: hover) and (pointer: fine) {
+
+    .content-item.active:hover,
+    .dc-user-row.active:hover {
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(139, 92, 246, 0.12));
+    }
 }
 
 .content-item.active .content-item-name,
@@ -708,7 +931,6 @@
     box-shadow: 0 0 0 2px var(--primary-color), 0 2px 8px rgba(79, 70, 229, 0.2);
 }
 
-/* Direct Message Avatar */
 .content-item-avatar {
     position: relative;
     width: 42px;
@@ -728,7 +950,6 @@
     font-family: "Adobe Clean Bold", sans-serif;
 }
 
-/* Online/Offline Status */
 .status-dot {
     position: absolute;
     bottom: 0px;
@@ -748,7 +969,6 @@
     background: #94a3b8;
 }
 
-/* Direct Message Info */
 .content-item-info {
     flex: 1;
     min-width: 0;
@@ -788,7 +1008,6 @@
 .project-list-info {
     padding: 8px 4px;
     font-size: 11px;
-    color: var(--text-muted);
     font-weight: 400;
     text-align: center;
     flex-shrink: 0;
@@ -796,7 +1015,7 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    z-index: 9999;
+    z-index: 80;
     background-color: var(--bg-dim);
     border-top: 1px solid var(--border-color);
     color: var(--text-primary);
@@ -929,11 +1148,14 @@
     cursor: pointer;
     font-size: 13px;
     font-weight: 500;
+    -webkit-tap-highlight-color: transparent;
 }
 
-.error-state button:hover {
-    background: var(--primary-color);
-    color: white;
+@media (hover: hover) and (pointer: fine) {
+    .error-state button:hover {
+        background: var(--primary-color);
+        color: white;
+    }
 }
 
 /* ==========================================================================
@@ -1055,8 +1277,6 @@
    RESPONSIVE - Mobile (≤ 1024px)
    ========================================================================== */
 @media (max-width: 1024px) {
-
-    /* Show toggle button on mobile */
     .sidebar-toggle-btn {
         display: flex;
     }
@@ -1067,27 +1287,17 @@
         top: 0;
         transform: translateX(-100%);
         box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
-        z-index: 50;
-        /* Ensure sidebar is above overlay */
+        z-index: 100;
     }
 
     .sidebar.mobile.open {
         transform: translateX(0);
-    }
-
-    /* When sidebar is open, ensure toggle button is positioned correctly */
-    .sidebar-toggle-btn.open {
-        /* left: 280px; */
     }
 }
 
 @media (max-width: 768px) {
     .sidebar.mobile {
         width: 300px;
-    }
-
-    .sidebar-toggle-btn.open {
-        /* left: 260px; */
     }
 
     .sidebar-header {
@@ -1106,6 +1316,27 @@
     .project-card {
         padding: 10px;
     }
+
+    .project-pricing-badge {
+        font-size: 9px;
+        padding: 0 6px;
+    }
+
+    .project-due-date {
+        font-size: 9px;
+        padding: 1px 4px;
+    }
+}
+
+@media (max-width: 480px) {
+    .project-status-row {
+        gap: 4px;
+    }
+
+    .project-pricing-badge {
+        font-size: 8px;
+        padding: 0 4px;
+    }
 }
 
 /* ==========================================================================
@@ -1123,5 +1354,192 @@
 
     .sidebar-overlay {
         display: none !important;
+    }
+}
+
+
+/* ==========================================================================
+   PROJECT PRICING ROW
+   ========================================================================== */
+.project-pricing-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+}
+
+.pricing-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ==========================================================================
+   PROJECT DUE DATE ROW
+   ========================================================================== */
+.project-due-date-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 18px;
+    margin-top: 1px;
+}
+
+.due-date-label {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ==========================================================================
+   PROJECT PRICING BADGE
+   ========================================================================== */
+.project-pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 8px;
+    border-radius: 12px;
+    text-transform: capitalize;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+/* Pricing - YES */
+.project-pricing-badge.yes {
+    color: #059669;
+    background: rgba(5, 150, 105, 0.1);
+    border: 1px solid rgba(5, 150, 105, 0.2);
+}
+
+.project-pricing-badge.yes::before {
+    content: '✓ ';
+    font-weight: 700;
+}
+
+/* Pricing - NO */
+.project-pricing-badge.no {
+    color: #6b7280;
+    background: rgba(107, 114, 128, 0.08);
+    border: 1px solid rgba(107, 114, 128, 0.15);
+    opacity: 0.7;
+}
+
+.project-pricing-badge.no::before {
+    content: '✗ ';
+    font-weight: 700;
+}
+
+/* Pricing - N/A */
+.project-pricing-badge.na {
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+/* Pricing hover effects */
+@media (hover: hover) and (pointer: fine) {
+    .project-pricing-badge:hover {
+        transform: scale(1.05);
+    }
+
+    .project-pricing-badge.yes:hover {
+        background: rgba(5, 150, 105, 0.15);
+    }
+
+    .project-pricing-badge.no:hover {
+        background: rgba(107, 114, 128, 0.12);
+        opacity: 0.9;
+    }
+
+    .project-pricing-badge.na:hover {
+        background: rgba(245, 158, 11, 0.15);
+    }
+}
+
+/* ==========================================================================
+   PROJECT DUE DATE
+   ========================================================================== */
+.project-due-date {
+    display: inline-flex;
+    align-items: center;
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--text-muted);
+    padding: 1px 6px;
+    background: var(--bg-dim);
+    border-radius: 4px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+
+.due-date-separator {
+    margin-right: 4px;
+    opacity: 0.5;
+    color: var(--text-muted);
+}
+
+/* Overdue - RED */
+.project-due-date.overdue {
+    color: #dc2626;
+    background: rgba(220, 38, 38, 0.08);
+    border: 1px solid rgba(220, 38, 38, 0.2);
+    opacity: 1;
+    font-weight: 500;
+}
+
+.project-due-date.overdue .due-date-separator {
+    opacity: 0.7;
+    color: #dc2626;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .project-due-date.overdue:hover {
+        background: rgba(220, 38, 38, 0.15);
+        border-color: rgba(220, 38, 38, 0.4);
+        transform: scale(1.02);
+    }
+}
+
+.project-due-date.overdue {
+    animation: overduePulse 2s ease-in-out infinite;
+}
+
+@keyframes overduePulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* No due date - subtle */
+.project-due-date.no-due-date {
+    opacity: 0.5;
+    font-style: italic;
+    color: var(--text-muted);
+    background: var(--bg-dim);
+    border: 1px dashed var(--border-color);
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .project-due-date:hover {
+        opacity: 1;
+        background: var(--bg-hover);
+    }
+
+    .project-due-date.no-due-date:hover {
+        opacity: 0.7;
+        background: var(--bg-hover);
     }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import SimpleBar from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import {
@@ -12,7 +12,12 @@ import {
     MdInsertDriveFile,
     MdImage,
     MdOpenInNew,
-    MdFilePresent
+    MdFilePresent,
+    MdDownload,
+    MdMic,
+    MdStop,
+    MdGraphicEq,
+    MdZoomIn,
 } from 'react-icons/md';
 
 import './ProjectChat.css';
@@ -32,9 +37,18 @@ function ProjectChat({ projectId, project }) {
     const [selectedFile, setSelectedFile] = useState(null);
     const [replyTo, setReplyTo] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [isDragging, setIsDragging] = useState(false);
+    const [lightboxUrl, setLightboxUrl] = useState(null);
+    const [isRecording, setIsRecording] = useState(false);
+    const [recordingSeconds, setRecordingSeconds] = useState(0);
 
     const fileInputRef = useRef(null);
     const scrollRef = useRef(null);
+    const dragCounter = useRef(0);
+    const inputRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const audioChunksRef = useRef([]);
+    const recordingTimerRef = useRef(null);
 
     const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -110,6 +124,40 @@ function ProjectChat({ projectId, project }) {
             active = false;
         };
     }, [projectId]);
+
+    /* ─── Drag and Drop Handlers ────────────────────────────────── */
+    const handleDragEnter = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current++;
+        if (e.dataTransfer.items && e.dataTransfer.items.length > 0) {
+            setIsDragging(true);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        dragCounter.current--;
+        if (dragCounter.current === 0) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(false);
+        dragCounter.current = 0;
+        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+            setSelectedFile(e.dataTransfer.files[0]);
+        }
+    };
 
     const scrollToBottom = () => {
         setTimeout(() => {
@@ -246,6 +294,9 @@ function ProjectChat({ projectId, project }) {
             userName: msg.user_name || msg.user?.name || 'Unknown',
             content: msg.content || msg.message || (msg.file ? `📎 File: ${msg.file.name}` : '')
         });
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 50);
     };
 
     const getInitials = (name) => {
@@ -272,8 +323,45 @@ function ProjectChat({ projectId, project }) {
         const ext = name.split('.').pop().toLowerCase();
         if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'].includes(ext)) return 'image';
         if (ext === 'pdf') return 'pdf';
+        if (['webm', 'ogg', 'mp3', 'wav', 'm4a', 'aac'].includes(ext)) return 'audio';
         return 'other';
     };
+
+    /* ─── Audio Recording ───────────────────────────────────────── */
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const recorder = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg' });
+            audioChunksRef.current = [];
+            recorder.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+            recorder.onstop = () => {
+                const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+                const ext = recorder.mimeType.includes('webm') ? 'webm' : 'ogg';
+                const file = new File([blob], `voice-${Date.now()}.${ext}`, { type: recorder.mimeType });
+                setSelectedFile(file);
+                stream.getTracks().forEach(t => t.stop());
+                setIsRecording(false);
+                clearInterval(recordingTimerRef.current);
+                setRecordingSeconds(0);
+            };
+            mediaRecorderRef.current = recorder;
+            recorder.start();
+            setIsRecording(true);
+            setRecordingSeconds(0);
+            recordingTimerRef.current = setInterval(() => setRecordingSeconds(s => s + 1), 1000);
+        } catch (err) {
+            console.error('Microphone error:', err);
+            alert('Microphone permission denied or not available.');
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+        }
+    };
+
+    const formatRecordingTime = (s) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
 
     const getFileUrl = (file) => {
         if (!file) return '';
@@ -295,7 +383,7 @@ function ProjectChat({ projectId, project }) {
 
         if (type === 'image') {
             return (
-                <div className="chat-file-image-wrapper" onClick={() => window.open(url, '_blank')}>
+                <div className="chat-file-image-wrapper" onClick={() => setLightboxUrl(url)}>
                     <img
                         src={url}
                         alt={file.name}
@@ -303,14 +391,23 @@ function ProjectChat({ projectId, project }) {
                         onError={(e) => { e.target.style.display = 'none'; }}
                     />
                     <div className="chat-file-image-overlay">
-                        <MdOpenInNew size={18} />
+                        <MdZoomIn size={20} />
                     </div>
                 </div>
             );
         }
 
+        if (type === 'audio') {
+            return (
+                <div className="chat-audio-player-wrapper">
+                    <div className="chat-audio-icon"><MdGraphicEq size={20} /></div>
+                    <audio controls className="chat-audio-player" src={url} />
+                </div>
+            );
+        }
+
         return (
-            <div className={`chat-file-doc-item ${isSelf ? 'self' : ''}`} onClick={() => window.open(url, '_blank')}>
+            <div className={`chat-file-doc-item ${isSelf ? 'self' : ''}`}>
                 <div className="chat-file-doc-icon">
                     {type === 'pdf'
                         ? <MdPictureAsPdf size={28} className="file-icon-pdf" />
@@ -321,14 +418,52 @@ function ProjectChat({ projectId, project }) {
                     <span className="chat-file-doc-name">{file.name}</span>
                     <span className="chat-file-doc-type">{type === 'pdf' ? 'PDF Document' : 'File Attachment'}</span>
                 </div>
-                <MdOpenInNew size={16} className="chat-file-doc-open" />
+                <div className="chat-file-doc-actions">
+                    <button className="chat-file-action-btn" title="Open in tab" onClick={() => window.open(url, '_blank')}>
+                        <MdOpenInNew size={15} />
+                    </button>
+                    <a className="chat-file-action-btn" title="Download" href={url} download={file.name}>
+                        <MdDownload size={15} />
+                    </a>
+                </div>
             </div>
         );
     };
 
 
     return (
-        <div className="chat-container">
+        <div 
+            className="chat-container"
+            onDragEnter={handleDragEnter}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+        >
+            {/* ── Image Lightbox ── */}
+            {lightboxUrl && (
+                <div className="chat-lightbox-overlay" onClick={() => setLightboxUrl(null)}>
+                    <div className="chat-lightbox-inner" onClick={e => e.stopPropagation()}>
+                        <img src={lightboxUrl} alt="preview" className="chat-lightbox-img" />
+                        <div className="chat-lightbox-actions">
+                            <a href={lightboxUrl} download className="chat-lightbox-btn">
+                                <MdDownload size={20} /> Download
+                            </a>
+                            <button className="chat-lightbox-btn close" onClick={() => setLightboxUrl(null)}>
+                                <MdClose size={20} /> Close
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {isDragging && (
+                <div className="chat-drag-drop-overlay">
+                    <div className="chat-drag-drop-content">
+                        <MdAttachFile size={48} className="chat-drag-drop-icon" />
+                        <p>Drop file here to upload</p>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="chat-header">
                 <div className="chat-header-info">
@@ -505,26 +640,48 @@ function ProjectChat({ projectId, project }) {
             {/* Input Footer */}
             <form className="chat-input-area" onSubmit={handleSend}>
                 <div className="chat-input-wrapper">
-                    <button
-                        type="button"
-                        className="chat-input-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                    >
-                        <MdAttachFile size={20} />
-                    </button>
+                    {!isRecording && (
+                        <button
+                            type="button"
+                            className="chat-input-btn"
+                            onClick={() => fileInputRef.current?.click()}
+                            title="Attach file"
+                        >
+                            <MdAttachFile size={20} />
+                        </button>
+                    )}
                     <input
                         type="file"
                         ref={fileInputRef}
                         style={{ display: 'none' }}
                         onChange={handleFileChange}
                     />
-                    <input
-                        type="text"
-                        className="chat-text-input"
-                        placeholder="Write a message..."
-                        value={inputText}
-                        onChange={(e) => setInputText(e.target.value)}
-                    />
+
+                    {isRecording ? (
+                        <div className="chat-recording-indicator">
+                            <span className="chat-recording-dot" />
+                            <span className="chat-recording-time">{formatRecordingTime(recordingSeconds)}</span>
+                            <span className="chat-recording-label">Recording…</span>
+                        </div>
+                    ) : (
+                        <input
+                            type="text"
+                            ref={inputRef}
+                            className="chat-text-input"
+                            placeholder="Write a message..."
+                            value={inputText}
+                            onChange={(e) => setInputText(e.target.value)}
+                        />
+                    )}
+
+                    <button
+                        type="button"
+                        className={`chat-input-btn chat-mic-btn${isRecording ? ' recording' : ''}`}
+                        onClick={isRecording ? stopRecording : startRecording}
+                        title={isRecording ? 'Stop recording' : 'Record voice message'}
+                    >
+                        {isRecording ? <MdStop size={20} /> : <MdMic size={20} />}
+                    </button>
                 </div>
                 <button
                     type="submit"

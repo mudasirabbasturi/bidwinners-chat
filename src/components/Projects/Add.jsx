@@ -7,7 +7,7 @@ import 'simplebar-react/dist/simplebar.min.css';
 import Input from '../Input/Input';
 import Modal from '../Modal/Modal';
 import DropdownSelect from '../DropdownSelect/DropdownSelect';
-import Toast from '../Toast/Toast';
+
 import { Row, Col } from '../Grid/Grid';
 import './style.css';
 
@@ -38,13 +38,12 @@ const INITIAL_STATE = {
     preview_status: 'active',
 };
 
-function AddProject({ open, onClose, onSuccess }) {
+function AddProject({ open, onClose, onSuccess, showToast, publishProjectEvent }) {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(INITIAL_STATE);
     const [clients, setClients] = useState([]);
     const [clientsLoading, setClientsLoading] = useState(false);
     const [selectedClientNotes, setSelectedClientNotes] = useState('');
-    const [toast, setToast] = useState({ show: false, type: 'success', message: '', description: '' });
 
     // Reset form when modal opens
     useEffect(() => {
@@ -57,9 +56,6 @@ function AddProject({ open, onClose, onSuccess }) {
         }
     }, [open]);
 
-    const showToast = (type, message, description = '') => {
-        setToast({ show: true, type, message, description });
-    };
 
     const fetchClients = async () => {
         setClientsLoading(true);
@@ -156,15 +152,16 @@ function AddProject({ open, onClose, onSuccess }) {
             if (data.status) {
                 setFormData(INITIAL_STATE);
                 setSelectedClientNotes('');
-                onSuccess?.();
+                onSuccess?.(data.data || data.project || formData);
                 onClose();
-                showToast('success', 'Project Created', 'Project has been created successfully');
+                showToast?.('success', 'Project Created', 'Project has been created successfully');
+                publishProjectEvent?.('add-project', data.data || data.project || formData, formData.project_title);
             } else {
-                showToast('error', 'Failed to Create Project', data.message || 'Something went wrong');
+                showToast?.('error', 'Failed to Create Project', data.message || 'Something went wrong');
             }
         } catch (error) {
             console.error('Error creating project:', error);
-            showToast('error', 'Network Error', 'Failed to connect to server. Please try again.');
+            showToast?.('error', 'Network Error', 'Failed to connect to server. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -178,16 +175,6 @@ function AddProject({ open, onClose, onSuccess }) {
 
     return (
         <>
-            <Toast
-                type={toast.type}
-                message={toast.message}
-                description={toast.description}
-                show={toast.show}
-                duration={4000}
-                onClose={() => setToast(prev => ({ ...prev, show: false }))}
-                position="top-right"
-            />
-
             <Modal
                 open={open}
                 onClose={handleClose}
