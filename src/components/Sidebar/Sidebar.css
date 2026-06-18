@@ -334,7 +334,7 @@
     border: 1px solid var(--border-color);
     border-radius: 12px;
     padding: 12px;
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
     -webkit-tap-highlight-color: transparent;
 }
 

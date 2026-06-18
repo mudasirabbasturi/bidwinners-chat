@@ -432,7 +432,7 @@ function ProjectChat({ projectId, project }) {
 
 
     return (
-        <div 
+        <div
             className="chat-container"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}

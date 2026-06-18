@@ -145,10 +145,9 @@ function DirectChat({ partnerId, partnerName }) {
         const channel = ablyClient.channels.get(channelName);
 
         const handleEvent = (msg) => {
-            // Ignore echoes of our own publishes
             if (msg.clientId === String(currentUser.id)) return;
-
             const { action, data } = msg.data;
+            console.log('📥 RECEIVED DATA:', JSON.stringify(data, null, 2))
             if (action === 'message') {
                 setMessages(prev => {
                     if (prev.some(m => m.id === data.id)) return prev;
@@ -266,19 +265,13 @@ function DirectChat({ partnerId, partnerName }) {
 
     const getFileUrl = (file) => {
         if (!file) return '';
-        // If url starts with blob:, use directly (local preview)
         if (file.url && file.url.startsWith('blob:')) return file.url;
-
-        // If full URL already given, use it (backend might return this for safety)
         if (file.url && file.url.startsWith('http')) return file.url;
-
-        // If URL starts with /, add API_BASE_URL
         if (file.url && file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
-
-        // Fallback: construct from path (if backend sends path only)
         const path = file.url || `uploads/media/direct_chat/${file.name}`;
         return `${API_BASE_URL}/${path}`;
     };
+
     /* ─── File rendering ─────────────────────────────────────── */
     const renderFileBubble = (file, isSelf) => {
         const type = getFileType(file.name);
@@ -379,6 +372,12 @@ function DirectChat({ partnerId, partnerName }) {
                 if (ablyClient) {
                     const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
                     const channel = ablyClient.channels.get(`direct-chat-${channelId}`);
+                    // channel.publish('direct-chat-event', { action: 'message', data: data.message });
+                    console.log('📤 Publishing to Ably:', {
+                        has_file: data.message.file !== undefined,
+                        file: data.message.file,
+                        data: data.message
+                    });
                     channel.publish('direct-chat-event', { action: 'message', data: data.message });
                 }
             }
@@ -447,7 +446,7 @@ function DirectChat({ partnerId, partnerName }) {
     }
 
     return (
-        <div 
+        <div
             className="dc-chat-inner"
             onDragEnter={handleDragEnter}
             onDragOver={handleDragOver}

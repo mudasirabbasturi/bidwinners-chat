@@ -707,19 +707,18 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
     const parentRef = useRef(null);
     const scrollElementRef = useRef(null);
 
-    // Virtualizer
     const virtualizer = useVirtualizer({
         count: projects.length,
         getScrollElement: () => scrollElementRef.current,
         estimateSize: () => 140,
+        measureElement: (el) => el.getBoundingClientRect().height,
         overscan: 5,
+        getItemKey: useCallback((index) => projects[index]?.id || index, [projects]),
     });
 
     useEffect(() => {
-        if (scrollElementRef.current) {
-            virtualizer.measure();
-        }
-    }, [scrollElementRef.current, projects.length]);
+        virtualizer.measure();
+    }, [statusFilter, searchTerm, projects.length, virtualizer]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -790,11 +789,11 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         { value: 'Pending', label: 'Pending', icon: <MdCircle size={6} />, statusClass: 'status-pending' },
         { value: 'Takeoff On Progress', label: 'Takeoff In Progress', icon: <MdCircle size={6} />, statusClass: 'status-takeoff' },
         { value: 'Pricing In Progress', label: 'Pricing In Progress', icon: <MdCircle size={6} />, statusClass: 'status-pricing' },
-        { value: 'Completed', label: 'Completed', icon: <MdCircle size={6} />, statusClass: 'status-completed' },
+        // { value: 'Completed', label: 'Completed', icon: <MdCircle size={6} />, statusClass: 'status-completed' },
         { value: 'Revision', label: 'Revision', icon: <MdCircle size={6} />, statusClass: 'status-revision' },
         { value: 'Hold', label: 'Hold', icon: <MdCircle size={6} />, statusClass: 'status-hold' },
-        { value: 'Deliver', label: 'Deliver', icon: <MdCircle size={6} />, statusClass: 'status-deliver' },
-        { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
+        // { value: 'Deliver', label: 'Deliver', icon: <MdCircle size={6} />, statusClass: 'status-deliver' },
+        // { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
     ], []);
 
     // Direct chat users from API
@@ -994,6 +993,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                             }}
                                         >
                                             {virtualizer.getVirtualItems().map((virtualItem) => (
+
                                                 <div
                                                     key={virtualItem.key}
                                                     data-index={virtualItem.index}
@@ -1070,11 +1070,39 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                                     onClick={() => handleDirectUserClick(user)}
                                     style={{ cursor: 'pointer' }}
                                 >
-                                    <div
-                                        className="content-item-avatar"
-                                        style={{ background: getUserColor(user.name) }}
-                                    >
-                                        <span style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>
+                                    <div className="content-item-avatar">
+                                        {user.profile_picture ? (
+                                            <img
+                                                src={`${USER_PROFILE_BASE_URL}/${user.profile_picture}`}
+                                                alt={user.name}
+                                                style={{
+                                                    width: '100%',
+                                                    height: '100%',
+                                                    objectFit: 'cover',
+                                                    borderRadius: '50%',
+                                                }}
+                                                onError={(e) => {
+                                                    // Hide broken image, show fallback
+                                                    e.target.style.display = 'none';
+                                                    e.target.nextSibling.style.display = 'flex';
+                                                }}
+                                            />
+                                        ) : null}
+                                        <span
+                                            className="avatar-fallback"
+                                            style={{
+                                                width: '100%',
+                                                height: '100%',
+                                                borderRadius: '50%',
+                                                background: getUserColor(user.name),
+                                                color: '#fff',
+                                                fontSize: 13,
+                                                fontWeight: 700,
+                                                display: user.profile_picture ? 'none' : 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                            }}
+                                        >
                                             {getInitials(user.name)}
                                         </span>
                                     </div>
