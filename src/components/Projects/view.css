@@ -383,3 +383,200 @@
     font-weight: 500;
     cursor: pointer;
 }
+
+/* Fallback styling for empty/N/A values */
+.vp-fallback {
+    color: var(--text-muted);
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.vp-info-value.vp-fallback {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.vp-metric-value.vp-fallback {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.vp-late-yes {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+
+/* Client Notes inline in Project Info card */
+.vp-client-notes {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: var(--bg-dim);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--primary-color);
+}
+
+.vp-client-notes-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.vp-client-notes .vp-rich-content {
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 0;
+}
+
+.vp-client-notes .vp-rich-content p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   RICH CARD - Enhanced content cards with icon and accent border
+   ========================================================================== */
+.vp-rich-card {
+    margin-bottom: 4px;
+}
+
+.vp-rich-card:last-child {
+    margin-bottom: 0;
+}
+
+.vp-rich-card-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: var(--bg-dim);
+    border-radius: 8px 8px 0 0;
+    border-left: 3px solid var(--primary-color);
+    margin-bottom: 0;
+}
+
+.vp-rich-card-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.vp-rich-card-label span {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    letter-spacing: -0.1px;
+}
+
+.vp-rich-card-content {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    background: white;
+}
+
+.vp-rich-card-content .vp-rich-content {
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 0;
+}
+
+.vp-rich-card-content .vp-rich-content p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+.vp-rich-card-content .vp-empty {
+    padding: 8px 0;
+    margin: 0;
+}
+
+/* ==========================================================================
+   CLIENT NOTES - Inline in Project Info card
+   ========================================================================== */
+.vp-client-notes {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: #f0f9ff;
+    border-radius: 8px;
+    border: 1px solid #bae6fd;
+    border-left: 3px solid #0ea5e9;
+}
+
+.vp-client-notes-empty {
+    background: var(--bg-dim);
+    border-color: var(--border-color);
+    border-left-color: #d1d5db;
+}
+
+.vp-client-notes-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #0369a1;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.vp-client-notes-empty .vp-client-notes-label {
+    color: var(--text-muted);
+}
+
+.vp-client-notes .vp-rich-content {
+    font-size: 13px;
+    color: var(--text-primary);
+    padding: 0;
+}
+
+.vp-client-notes .vp-rich-content p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* ==========================================================================
+   FALLBACK STYLING
+   ========================================================================== */
+.vp-fallback {
+    color: #9ca3af;
+    font-style: italic;
+    opacity: 0.7;
+}
+
+.vp-info-value.vp-fallback {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.vp-metric-value.vp-fallback {
+    color: #9ca3af;
+    font-style: italic;
+}
+
+.vp-late-yes {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   DIVIDER
+   ========================================================================== */
+.vp-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 8px 0;
+}

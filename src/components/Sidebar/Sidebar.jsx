@@ -783,18 +783,32 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         { id: 'project', label: 'Projects Chat', href: '/project-chat' },
         { id: 'direct', label: 'Direct Chat', href: '/direct-chat' }
     ], []);
+    const statusOptions = useMemo(() => {
+        const statusCounts = {};
+        allProjects.forEach(p => {
+            statusCounts[p.project_status] = (statusCounts[p.project_status] || 0) + 1;
+        });
 
-    const statusOptions = useMemo(() => [
-        { value: 'All', label: 'All Projects', icon: <MdCircle size={6} />, statusClass: 'status-all' },
-        { value: 'Pending', label: 'Pending', icon: <MdCircle size={6} />, statusClass: 'status-pending' },
-        { value: 'Takeoff On Progress', label: 'Takeoff In Progress', icon: <MdCircle size={6} />, statusClass: 'status-takeoff' },
-        { value: 'Pricing In Progress', label: 'Pricing In Progress', icon: <MdCircle size={6} />, statusClass: 'status-pricing' },
-        // { value: 'Completed', label: 'Completed', icon: <MdCircle size={6} />, statusClass: 'status-completed' },
-        { value: 'Revision', label: 'Revision', icon: <MdCircle size={6} />, statusClass: 'status-revision' },
-        { value: 'Hold', label: 'Hold', icon: <MdCircle size={6} />, statusClass: 'status-hold' },
-        // { value: 'Deliver', label: 'Deliver', icon: <MdCircle size={6} />, statusClass: 'status-deliver' },
-        // { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
-    ], []);
+        return [
+            { value: 'All', label: `All Projects (${allProjects.length})`, icon: <MdCircle size={6} />, statusClass: 'status-all' },
+            { value: 'Pending', label: `Pending (${statusCounts['Pending'] || 0})`, icon: <MdCircle size={6} />, statusClass: 'status-pending' },
+            { value: 'Takeoff On Progress', label: `Takeoff In Progress (${statusCounts['Takeoff On Progress'] || 0})`, icon: <MdCircle size={6} />, statusClass: 'status-takeoff' },
+            { value: 'Pricing In Progress', label: `Pricing In Progress (${statusCounts['Pricing In Progress'] || 0})`, icon: <MdCircle size={6} />, statusClass: 'status-pricing' },
+            { value: 'Revision', label: `Revision (${statusCounts['Revision'] || 0})`, icon: <MdCircle size={6} />, statusClass: 'status-revision' },
+            { value: 'Hold', label: `Hold (${statusCounts['Hold'] || 0})`, icon: <MdCircle size={6} />, statusClass: 'status-hold' },
+        ];
+    }, [allProjects]);
+    // const statusOptions = useMemo(() => [
+    //     { value: 'All', label: 'All Projects', icon: <MdCircle size={6} />, statusClass: 'status-all' },
+    //     { value: 'Pending', label: 'Pending', icon: <MdCircle size={6} />, statusClass: 'status-pending' },
+    //     { value: 'Takeoff On Progress', label: 'Takeoff In Progress', icon: <MdCircle size={6} />, statusClass: 'status-takeoff' },
+    //     { value: 'Pricing In Progress', label: 'Pricing In Progress', icon: <MdCircle size={6} />, statusClass: 'status-pricing' },
+    //     { value: 'Completed', label: 'Completed', icon: <MdCircle size={6} />, statusClass: 'status-completed' },
+    //     { value: 'Revision', label: 'Revision', icon: <MdCircle size={6} />, statusClass: 'status-revision' },
+    //     { value: 'Hold', label: 'Hold', icon: <MdCircle size={6} />, statusClass: 'status-hold' },
+    //     { value: 'Deliver', label: 'Deliver', icon: <MdCircle size={6} />, statusClass: 'status-deliver' },
+    //     { value: 'Cancelled', label: 'Cancelled', icon: <MdCircle size={6} />, statusClass: 'status-cancelled' },
+    // ], []);
 
     // Direct chat users from API
     const [directUsers, setDirectUsers] = useState([]);
