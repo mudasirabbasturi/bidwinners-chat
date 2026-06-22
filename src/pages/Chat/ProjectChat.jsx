@@ -187,21 +187,8 @@ function ProjectChat({ projectId, project }) {
         if (e) e.preventDefault();
         if (!inputText.trim() && !selectedFile) return;
 
-        const formData = new FormData();
-        formData.append('project_id', projectId);
-        formData.append('user_id', currentUser.id);
-        if (inputText.trim()) {
-            formData.append('message', inputText);
-        }
-        if (replyTo) {
-            formData.append('reply_to_id', replyTo.id);
-        }
-        if (selectedFile) {
-            formData.append('file', selectedFile);
-        }
-
-        // Temporary local message state for speed
-        const tempId = `temp-${Date.now()}`;
+        // 1.  Sending placeholder (no blob URL for file)
+        const tempId = `sending-${Date.now()}`;
         const tempMsg = {
             id: tempId,
             senderId: currentUser.id,
@@ -211,14 +198,25 @@ function ProjectChat({ projectId, project }) {
             reply_to_id: replyTo ? replyTo.id : null,
             reply_to_message: replyTo ? replyTo.content : null,
             reply_to_user_name: replyTo ? replyTo.userName : null,
-            file: selectedFile ? { name: selectedFile.name, url: URL.createObjectURL(selectedFile) } : null
+            file: selectedFile ? { name: selectedFile.name, url: null } : null,
+            sending: true,
         };
 
         setMessages(prev => [...prev, tempMsg]);
+        const inputTextSnapshot = inputText;
+        const replyToSnapshot = replyTo;
         setInputText('');
         setSelectedFile(null);
         setReplyTo(null);
         scrollToBottom();
+
+        // 2. Upload to server
+        const formData = new FormData();
+        formData.append('project_id', projectId);
+        formData.append('user_id', currentUser.id);
+        if (inputTextSnapshot.trim()) formData.append('message', inputTextSnapshot);
+        if (replyToSnapshot) formData.append('reply_to_id', replyToSnapshot.id);
+        if (selectedFile) formData.append('file', selectedFile);
 
         try {
             const token = localStorage.getItem('token');
@@ -233,25 +231,62 @@ function ProjectChat({ projectId, project }) {
             const data = await response.json();
 
             if (data.success && data.message) {
-                // Replace temp message with correct database record
+                // 3. Replace placeholder with server response (includes real file URL)
+                const serverMsg = data.message;
+                serverMsg.sending = false;
                 setMessages(prev =>
-                    prev.map(m => m.id === tempId ? data.message : m)
+                    prev.map(m => m.id === tempId ? serverMsg : m)
                 );
 
-                // Publish real-time event via Ably to other participants
+                // 4. Publish server response via Ably to other participants
                 if (ablyClient) {
                     const channelName = `project-chat-${projectId}`;
                     const channel = ablyClient.channels.get(channelName);
                     channel.publish('chat-event', {
                         action: 'message',
-                        data: data.message
+                        data: serverMsg
                     });
                 }
             } else {
-                console.error('Failed to send message:', data.message);
+                setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false, failed: true } : m));
             }
         } catch (error) {
             console.error('Error sending message:', error);
+            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false, failed: true } : m));
+        }
+    };
+
+    /* ─── Retry failed ───────────────────────────────────────────── */
+    const handleRetry = async (failedMsg) => {
+        setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, failed: false, sending: true } : m));
+        try {
+            const formData = new FormData();
+            formData.append('project_id', projectId);
+            formData.append('user_id', currentUser.id);
+            if (failedMsg.content?.trim()) formData.append('message', failedMsg.content);
+            if (failedMsg.reply_to_id) formData.append('reply_to_id', failedMsg.reply_to_id);
+
+            const token = localStorage.getItem('token');
+            const response = await fetch(`${API_BASE_URL}/api/chat-project-send-message`, {
+                method: 'POST',
+                headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            const data = await response.json();
+            if (data.success && data.message) {
+                const serverMsg = data.message;
+                serverMsg.sending = false;
+                setMessages(prev => prev.map(m => m.id === failedMsg.id ? serverMsg : m));
+                if (ablyClient) {
+                    const channelName = `project-chat-${projectId}`;
+                    const channel = ablyClient.channels.get(channelName);
+                    channel.publish('chat-event', { action: 'message', data: serverMsg });
+                }
+            } else {
+                setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, sending: false, failed: true } : m));
+            }
+        } catch {
+            setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, sending: false, failed: true } : m));
         }
     };
 
@@ -365,13 +400,9 @@ function ProjectChat({ projectId, project }) {
 
     const getFileUrl = (file) => {
         if (!file) return '';
-        // If url starts with blob:, use directly (local preview)
-        if (file.url && file.url.startsWith('blob:')) return file.url;
-        // If full URL already given, use it
-        if (file.url && file.url.startsWith('http')) return file.url;
-        // If URL starts with /, add API_BASE_URL
-        if (file.url && file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
-        // Fallback: construct from path
+        if (!file.url) return '';
+        if (file.url.startsWith('http')) return file.url;
+        if (file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
         const path = file.url || `uploads/media/project_chat/${file.name}`;
         return `${API_BASE_URL}/${path}`;
     };
@@ -563,13 +594,27 @@ function ProjectChat({ projectId, project }) {
                                                                 </div>
                                                             </div>
                                                         )}
-                                                        {msg.file && (
+                                                        {msg.sending && (
+                                                            <div className="chat-bubble-sending">
+                                                                <span className="chat-sending-spinner" />
+                                                                <span>Sending{msg.file?.name ? ' file...' : '...'}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {msg.failed && (
+                                                            <div className="chat-bubble-failed">
+                                                                <span>Failed to send. </span>
+                                                                <button onClick={() => handleRetry(msg)}>Retry</button>
+                                                            </div>
+                                                        )}
+
+                                                        {msg.file && msg.file.url && !msg.sending && (
                                                             <div className="chat-bubble-files">
                                                                 {renderFileBubble(msg.file, isSelf)}
                                                             </div>
                                                         )}
 
-                                                        {msg.content || msg.message}
+                                                        {(msg.content || msg.message) && <span>{msg.content || msg.message}</span>}
                                                     </div>
 
                                                     {/* Actions appear to the RIGHT of bubble for others */}

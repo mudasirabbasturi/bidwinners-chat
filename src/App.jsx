@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Routes, Route, Navigate, useParams } from 'react-router-dom';
 import Sidebar from './components/Sidebar/Sidebar';
 import ProjectChat from './pages/Chat/ProjectChat';
@@ -46,11 +46,17 @@ function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
   const [projectsList, setProjectsList] = useState([]);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth <= 1024;
       setIsMobile(mobile);
+      if (isFirstRender.current) {
+        isFirstRender.current = false;
+        setSidebarOpen(true);
+        return;
+      }
       if (mobile) {
         setSidebarOpen(false);
       } else {

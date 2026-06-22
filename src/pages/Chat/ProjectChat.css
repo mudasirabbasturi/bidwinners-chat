@@ -723,3 +723,54 @@
     font-size: 13px;
     color: var(--text-secondary);
 }
+
+/* ── Sending / Failed states ──────────────────────────────────── */
+.chat-bubble-sending {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.chat-sending-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: chat-spin 0.6s linear infinite;
+}
+
+@keyframes chat-spin {
+    to { transform: rotate(360deg); }
+}
+
+.chat-bubble-failed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #ef4444;
+}
+
+.chat-bubble-failed button {
+    background: none;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.chat-message-row.self .chat-bubble-failed {
+    color: #fca5a5;
+}
+
+.chat-message-row.self .chat-bubble-failed button {
+    border-color: #fca5a5;
+    color: #fca5a5;
+}

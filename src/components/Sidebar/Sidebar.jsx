@@ -843,7 +843,10 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
 
     const handleDirectUserClick = useCallback((user) => {
         navigate(`/direct-chat/${user.id}`);
-    }, [navigate]);
+        if (window.innerWidth <= 1024 && isOpen) {
+            onToggle();
+        }
+    }, [navigate, isOpen, onToggle]);
 
     const getInitials = useCallback((name) => {
         if (!name) return '?';
@@ -861,7 +864,10 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
         e.preventDefault();
         e.stopPropagation();
         navigate(`/project-chat/${project.id}`);
-    }, [navigate]);
+        if (window.innerWidth <= 1024 && isOpen) {
+            onToggle();
+        }
+    }, [navigate, isOpen, onToggle]);
 
     const handleViewProject = useCallback((project) => {
         setSelectedProject(project);
@@ -1161,17 +1167,15 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
 
     return (
         <>
-            {isMobile && (
-                <button
-                    className={`sidebar-toggle-btn ${isOpen ? 'open' : ''}`}
-                    onClick={onToggle}
-                    aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
-                >
-                    {isOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
-                </button>
-            )}
+            <button
+                className={`sidebar-toggle-btn ${isOpen ? 'open' : ''}`}
+                onClick={onToggle}
+                aria-label={isOpen ? 'Close sidebar' : 'Open sidebar'}
+            >
+                {isOpen ? <MdClose size={24} /> : <MdMenu size={24} />}
+            </button>
 
-            {isMobile && isOpen && (
+            {isOpen && (
                 <div className="sidebar-overlay" onClick={onToggle} />
             )}
 

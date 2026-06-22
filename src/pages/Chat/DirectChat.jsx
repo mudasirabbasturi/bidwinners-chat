@@ -265,9 +265,9 @@ function DirectChat({ partnerId, partnerName }) {
 
     const getFileUrl = (file) => {
         if (!file) return '';
-        if (file.url && file.url.startsWith('blob:')) return file.url;
-        if (file.url && file.url.startsWith('http')) return file.url;
-        if (file.url && file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
+        if (!file.url) return '';
+        if (file.url.startsWith('http')) return file.url;
+        if (file.url.startsWith('/')) return `${API_BASE_URL}${file.url}`;
         const path = file.url || `uploads/media/direct_chat/${file.name}`;
         return `${API_BASE_URL}/${path}`;
     };
@@ -321,19 +321,13 @@ function DirectChat({ partnerId, partnerName }) {
         );
     };
 
-    /* ─── Send ───────────────────────────────────────────────────── */
+    /* ─── Send (WhatsApp-like: wait for server, no optimistic blob) ── */
     const handleSend = async (e) => {
         if (e) e.preventDefault();
         if (!inputText.trim() && !selectedFile) return;
 
-        const formData = new FormData();
-        formData.append('receiver_id', partnerId);
-        if (inputText.trim()) formData.append('message', inputText);
-        if (replyTo) formData.append('reply_to_id', replyTo.id);
-        if (selectedFile) formData.append('file', selectedFile);
-
-        // Optimistic local message
-        const tempId = `temp-${Date.now()}`;
+        // 1. Show a sending placeholder immediately (no blob URL for file)
+        const tempId = `sending-${Date.now()}`;
         const tempMsg = {
             id: tempId,
             senderId: currentUser.id,
@@ -344,16 +338,24 @@ function DirectChat({ partnerId, partnerName }) {
             reply_to_id: replyTo ? replyTo.id : null,
             reply_to_message: replyTo ? replyTo.content : null,
             reply_to_user_name: replyTo ? replyTo.userName : null,
-            file: selectedFile
-                ? { name: selectedFile.name, url: URL.createObjectURL(selectedFile) }
-                : null,
+            file: selectedFile ? { name: selectedFile.name, url: null } : null,
+            sending: true,
         };
 
         setMessages(prev => [...prev, tempMsg]);
+        const inputTextSnapshot = inputText;
+        const replyToSnapshot = replyTo;
         setInputText('');
         setSelectedFile(null);
         setReplyTo(null);
         scrollToBottom();
+
+        // 2. Upload to server
+        const formData = new FormData();
+        formData.append('receiver_id', partnerId);
+        if (inputTextSnapshot.trim()) formData.append('message', inputTextSnapshot);
+        if (replyToSnapshot) formData.append('reply_to_id', replyToSnapshot.id);
+        if (selectedFile) formData.append('file', selectedFile);
 
         try {
             const token = localStorage.getItem('token');
@@ -365,24 +367,57 @@ function DirectChat({ partnerId, partnerName }) {
             const data = await res.json();
 
             if (data.success && data.message) {
-                console.log(data)
-                setMessages(prev => prev.map(m => m.id === tempId ? data.message : m));
+                // 3. Replace placeholder with the real server response
+                const serverMsg = data.message;
+                serverMsg.sending = false;
+                setMessages(prev => prev.map(m => m.id === tempId ? serverMsg : m));
 
-                // Publish to Ably
+                // 4. Publish server response to Ably so other users see it
                 if (ablyClient) {
                     const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
                     const channel = ablyClient.channels.get(`direct-chat-${channelId}`);
-                    // channel.publish('direct-chat-event', { action: 'message', data: data.message });
-                    console.log('📤 Publishing to Ably:', {
-                        has_file: data.message.file !== undefined,
-                        file: data.message.file,
-                        data: data.message
-                    });
-                    channel.publish('direct-chat-event', { action: 'message', data: data.message });
+                    channel.publish('direct-chat-event', { action: 'message', data: serverMsg });
                 }
+            } else {
+                // Mark as failed
+                setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false, failed: true } : m));
             }
         } catch (err) {
             console.error('Error sending message:', err);
+            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, sending: false, failed: true } : m));
+        }
+    };
+
+    /* ─── Retry failed ───────────────────────────────────────────── */
+    const handleRetry = async (failedMsg) => {
+        setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, failed: false, sending: true } : m));
+        try {
+            const formData = new FormData();
+            formData.append('receiver_id', partnerId);
+            if (failedMsg.content?.trim()) formData.append('message', failedMsg.content);
+            if (failedMsg.reply_to_id) formData.append('reply_to_id', failedMsg.reply_to_id);
+
+            const token = localStorage.getItem('token');
+            const res = await fetch(`${API_BASE_URL}/api/direct-chat-send-message`, {
+                method: 'POST',
+                headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success && data.message) {
+                const serverMsg = data.message;
+                serverMsg.sending = false;
+                setMessages(prev => prev.map(m => m.id === failedMsg.id ? serverMsg : m));
+                if (ablyClient) {
+                    const channelId = [Number(currentUser.id), Number(partnerId)].sort((a, b) => a - b).join('-');
+                    const channel = ablyClient.channels.get(`direct-chat-${channelId}`);
+                    channel.publish('direct-chat-event', { action: 'message', data: serverMsg });
+                }
+            } else {
+                setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, sending: false, failed: true } : m));
+            }
+        } catch {
+            setMessages(prev => prev.map(m => m.id === failedMsg.id ? { ...m, sending: false, failed: true } : m));
         }
     };
 
@@ -602,8 +637,24 @@ function DirectChat({ partnerId, partnerName }) {
                                                             </div>
                                                         )}
 
+                                                        {/* Sending indicator */}
+                                                        {msg.sending && (
+                                                            <div className="dc-bubble-sending">
+                                                                <span className="dc-sending-spinner" />
+                                                                <span>Sending{msg.file?.name ? ' file...' : '...'}</span>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Failed indicator */}
+                                                        {msg.failed && (
+                                                            <div className="dc-bubble-failed">
+                                                                <span>Failed to send. </span>
+                                                                <button onClick={() => handleRetry(msg)}>Retry</button>
+                                                            </div>
+                                                        )}
+
                                                         {/* File */}
-                                                        {msg.file && (
+                                                        {msg.file && msg.file.url && !msg.sending && (
                                                             <div className="dc-bubble-files">
                                                                 {renderFileBubble(msg.file, isSelf)}
                                                             </div>

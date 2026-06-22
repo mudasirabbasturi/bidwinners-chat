@@ -220,6 +220,7 @@ function ViewProject({ open, onClose, projectId }) {
     const canViewFinalLink = can('View Final Link(offside)') || can('Add Final Link') || can('Update Final Link');
     const canViewDueDate = can('View Projects') || can('View All Projects') || can('Add Due Date') || can('Update Due Date');
     const canViewPoints = can('View All Points') || can('View Personal Points') || can('Add Project Points') || can('Update Project Points');
+    const canViewAllPoints = can('View All Points');
     const canViewMainScope = can('View Projects') || can('View All Projects') || can('Add Main Scope') || can('Update Main Scope');
     const canViewScopeDetails = can('View Projects') || can('View All Projects') || can('Add Scope Details') || can('Update Scope Details');
     const canViewAddress = can('View Projects') || can('View All Projects') || can('Add Project Address') || can('Update Project Address');
@@ -423,7 +424,9 @@ function ViewProject({ open, onClose, projectId }) {
                                                     Points
                                                 </span>
                                                 <span className={`vp-metric-value vp-points ${!data.project_points ? 'vp-fallback' : ''}`}>
-                                                    {data.project_points || 'N/A'}
+                                                    {data.project_points || (
+                                                        canViewAllPoints ? 'N/A (Admin Only)' : 'N/A'
+                                                    )}
                                                 </span>
                                             </div>
                                         )}
