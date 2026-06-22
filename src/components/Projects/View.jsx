@@ -207,6 +207,7 @@ function ViewProject({ open, onClose, projectId }) {
         : [];
 
     /* ── Permission-based field visibility ────────────────────── */
+    const canViewClientNameAdmin = can('View Client Admin');
     const canViewClientName = can('View Client Personal') || can('View Client Admin');
     const canViewClientId = can('View Client Personal') || can('Add Project Client') || can('Update Project Client');
     const canViewConstructionType = can('View Projects') || can('View All Projects') || can('Add Construction Type') || can('Update Construction Type');
@@ -304,9 +305,12 @@ function ViewProject({ open, onClose, projectId }) {
                                 {/* Project Info */}
                                 <SectionLabel>Project Info</SectionLabel>
                                 <div className="vp-card">
-                                    {canViewClientName && (
-                                        <InfoRow icon={MdPerson} label="Client Name (Admin)" value={data.client_name_for_admin} fallback="N/A" />
-                                    )}
+                                    <InfoRow
+                                        icon={MdPerson}
+                                        label="Client Name (Admin)"
+                                        value={canViewClientNameAdmin ? data.client_name_for_admin : null}
+                                        fallback={canViewClientNameAdmin ? "N/A" : "N/A Only Admin"}
+                                    />
                                     {canViewClientId && (
                                         <>
                                             <InfoRow icon={MdFormatListNumbered} label="Client" value={data.client_name || data.client_id} fallback="N/A" />
@@ -417,19 +421,15 @@ function ViewProject({ open, onClose, projectId }) {
                                                 </span>
                                             </div>
                                         )}
-                                        {canViewPoints && (
-                                            <div className="vp-metric">
-                                                <span className="vp-metric-label">
-                                                    <MdStar size={12} style={{ marginRight: 4 }} />
-                                                    Points
-                                                </span>
-                                                <span className={`vp-metric-value vp-points ${!data.project_points ? 'vp-fallback' : ''}`}>
-                                                    {data.project_points || (
-                                                        canViewAllPoints ? 'N/A (Admin Only)' : 'N/A'
-                                                    )}
-                                                </span>
-                                            </div>
-                                        )}
+                                        <div className="vp-metric">
+                                            <span className="vp-metric-label">
+                                                <MdStar size={12} style={{ marginRight: 4 }} />
+                                                Points
+                                            </span>
+                                            <span className={`vp-metric-value vp-points ${!canViewAllPoints || !data.project_points ? 'vp-fallback' : ''}`}>
+                                                {canViewAllPoints ? (data.project_points || 'N/A') : 'N/A Only Admin'}
+                                            </span>
+                                        </div>
                                         <div className="vp-metric">
                                             <span className="vp-metric-label">
                                                 <MdCalendarToday size={12} style={{ marginRight: 4 }} />
