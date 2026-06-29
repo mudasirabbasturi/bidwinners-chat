@@ -144,6 +144,17 @@
     box-shadow: 0 2px 4px rgba(79, 70, 229, 0.15);
 }
 
+.chat-message-bubble a {
+    color: #2563eb;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.chat-message-row.self .chat-message-bubble a {
+    color: #a5b4fc;
+    text-decoration: underline;
+}
+
 .chat-message-time {
     font-size: 10px;
     color: var(--text-muted);

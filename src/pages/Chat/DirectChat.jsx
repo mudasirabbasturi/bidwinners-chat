@@ -46,6 +46,39 @@ const getInitials = (name) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
 };
 
+const renderFormattedText = (text) => {
+    if (!text) return null;
+    const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+    const parts = text.split(urlRegex);
+
+    return parts.map((part, index) => {
+        if (/^(https?:\/\/|www\.)/i.test(part)) {
+            let url = part;
+            let trailing = '';
+            const matchTrailing = url.match(/[.,!?)]+$/);
+            if (matchTrailing) {
+                trailing = matchTrailing[0];
+                url = url.slice(0, -trailing.length);
+            }
+            const href = url.toLowerCase().startsWith('www.') ? `https://${url}` : url;
+            return (
+                <span key={index}>
+                    <a
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {url}
+                    </a>
+                    {trailing}
+                </span>
+            );
+        }
+        return part;
+    });
+};
+
 /**
  * DirectChat
  * Props:
@@ -662,7 +695,7 @@ function DirectChat({ partnerId, partnerName }) {
 
                                                         {/* Text */}
                                                         {(msg.content || msg.message) && (
-                                                            <span>{msg.content || msg.message}</span>
+                                                            <span>{renderFormattedText(msg.content || msg.message)}</span>
                                                         )}
                                                     </div>
 

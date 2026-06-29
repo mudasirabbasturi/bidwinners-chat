@@ -216,6 +216,17 @@
     border-bottom-left-radius: 16px;
 }
 
+.dc-message-bubble a {
+    color: #2563eb;
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.dc-message-row.self .dc-message-bubble a {
+    color: #a5b4fc;
+    text-decoration: underline;
+}
+
 /* Reply preview inside bubble */
 .dc-bubble-reply-preview {
     background: rgba(0, 0, 0, .05);

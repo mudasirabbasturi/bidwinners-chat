@@ -66,6 +66,7 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
     const memberCount = getUniqueMemberCount(project.team_members);
 
     const [menuOpen, setMenuOpen] = useState(false);
+    const [isScopeExpanded, setIsScopeExpanded] = useState(false);
     const moreBtnRef = useRef(null);
 
     const handleImageError = (e) => {
@@ -357,6 +358,53 @@ const ProjectCard = memo(({ project, activeProjectId, onChatClick, onViewProject
                                 </span>
                             );
                         })()}
+                    </div>
+
+                    {/* Scope Row */}
+                    <div className="project-scope-row" style={{ alignItems: 'flex-start' }}>
+                        <span className="scope-label" style={{ marginTop: '2px' }}>Scope:</span>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                            <span
+                                className="project-scope-badge"
+                                title={
+                                    project.project_main_scope
+                                        ? new DOMParser().parseFromString(project.project_main_scope, "text/html").body.textContent
+                                        : "No scope defined"
+                                }
+                                style={{
+                                    whiteSpace: isScopeExpanded ? 'normal' : 'nowrap',
+                                    maxHeight: isScopeExpanded ? 'none' : undefined,
+                                    maxWidth: isScopeExpanded ? '100%' : '140px',
+                                    wordWrap: 'break-word',
+                                    wordBreak: 'break-word'
+                                }}
+                            >
+                                {project.project_main_scope
+                                    ? (() => {
+                                        const text = new DOMParser()
+                                            .parseFromString(project.project_main_scope, "text/html")
+                                            .body.textContent;
+
+                                        if (text.length <= 25) return text;
+
+                                        return isScopeExpanded ? text : text.substring(0, 25) + "...";
+                                    })()
+                                    : "N/A"}
+                            </span>
+                            {project.project_main_scope && (() => {
+                                const text = new DOMParser()
+                                    .parseFromString(project.project_main_scope, "text/html")
+                                    .body.textContent;
+                                return text.length > 25 ? (
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setIsScopeExpanded(!isScopeExpanded); }}
+                                        style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '12px', cursor: 'pointer', padding: '2px 0 0 0', textAlign: 'left', fontWeight: 'bold', outline: 'none' }}
+                                    >
+                                        {isScopeExpanded ? 'Show less' : 'Read more'}
+                                    </button>
+                                ) : null;
+                            })()}
+                        </div>
                     </div>
                 </div>
 
@@ -825,6 +873,7 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
                 },
             });
             const data = await res.json();
+            // console.log("data", data);
             if (data.users) setDirectUsers(data.users);
         } catch (err) {
             console.error('Error fetching direct users:', err);
@@ -832,6 +881,8 @@ const Sidebar = ({ isOpen, onToggle, onProjectsLoaded }) => {
             setDirectUsersLoading(false);
         }
     }, []);
+
+
 
     const handleNavClick = useCallback((id) => {
         if (id === 'direct') {

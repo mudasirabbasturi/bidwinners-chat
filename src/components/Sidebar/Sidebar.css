@@ -593,6 +593,41 @@
 }
 
 /* ==========================================================================
+   PROJECT SCOPE ROW
+   ========================================================================== */
+.project-scope-row {
+    display: flex;
+    align-items: center;
+    min-height: 18px;
+    margin-top: 2px;
+}
+
+.scope-label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--text-muted);
+    color: black;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    width: 60px;
+    flex-shrink: 0;
+}
+
+.project-scope-badge {
+    font-size: 14px;
+    font-weight: 400;
+    color: var(--text-secondary, #64748b);
+    background: var(--bg-dim);
+    padding: 1px 6px;
+    border-radius: 4px;
+    display: inline-block;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ==========================================================================
    PROJECT DUE DATE ROW
    ========================================================================== */
 .project-due-date-row {
